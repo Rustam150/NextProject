@@ -1,0 +1,190 @@
+'use client';
+
+import Link from "next/link";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import ProductCard from "./components/ProductCard";
+import { HERMITAGE } from "../lib/data";
+
+export default function Home() {
+  const popular = HERMITAGE.products.filter((p) => p.popular);
+  const newest = HERMITAGE.products.filter((p) => p.isNew).slice(0, 4);
+  const brands = [...HERMITAGE.brands, ...HERMITAGE.brands];
+
+  return (
+    <>
+      <Header variant="hero" />
+
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero__bg">
+          <img src="/images/p1.jpg" alt="Премиальный интерьер" />
+        </div>
+        <div className="hero__overlay"></div>
+        <div className="hero__content">
+          <h1 className="hero__title">HERMITAGE DECOR</h1>
+          <p className="hero__tagline">Мебель и предметы интерьера премиального качества</p>
+          <div className="btn-group" style={{ justifyContent: "center" }}>
+            <Link href="/catalog" className="btn btn--primary">Смотреть каталог</Link>
+            <Link href="/catalog?new=1" className="btn btn--ghost">Новые коллекции</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* КАТЕГОРИИ */}
+      <section className="section" id="categories">
+        <div className="container">
+          <p className="section__subtitle">Коллекции</p>
+          <h2 className="section__title">Категории</h2>
+          <div className="categories-grid">
+            {HERMITAGE.categories.map((c) => (
+              <Link key={c.id} href={`/catalog?category=${c.id}`} className="category-card">
+                <img src={c.image} alt={c.name} loading="lazy" />
+                <span className="category-card__label">{c.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* СТРАНЫ */}
+      <section className="section" style={{ background: "var(--white)" }}>
+        <div className="container">
+          <p className="section__subtitle">Производство</p>
+          <h2 className="section__title">Мировые фабрики</h2>
+          <div className="countries-grid">
+            {HERMITAGE.countries.map((c) => (
+              <Link key={c.id} href={`/catalog?country=${encodeURIComponent(c.name)}`} className="country-card">
+                <img src={c.image} alt={c.name} loading="lazy" />
+                <span className="country-card__label">{c.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ПОПУЛЯРНЫЕ ТОВАРЫ (СЛАЙДЕР) */}
+      <section className="section">
+        <div className="container">
+          <div className="slider" data-slider>
+            <div className="slider__header">
+              <div>
+                <p className="section__subtitle">Выбор клиентов</p>
+                <h2 className="section__title">Популярные товары</h2>
+              </div>
+              <div className="slider__nav">
+                <button
+                  className="slider__btn"
+                  aria-label="Назад"
+                  onClick={() => {
+                    const track = document.getElementById("popular-slider");
+                    if (track) track.scrollBy({ left: -300, behavior: "smooth" });
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  className="slider__btn"
+                  aria-label="Вперёд"
+                  onClick={() => {
+                    const track = document.getElementById("popular-slider");
+                    if (track) track.scrollBy({ left: 300, behavior: "smooth" });
+                  }}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <div className="slider__track" id="popular-slider">
+              {popular.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* НОВИНКИ */}
+      <section className="section" style={{ background: "var(--white)" }}>
+        <div className="container">
+          <p className="section__subtitle">Коллекция 2026</p>
+          <h2 className="section__title">Новинки</h2>
+          <div className="products-grid">
+            {newest.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+          <p className="mt-2" style={{ textAlign: "center" }}>
+            <Link href="/catalog?new=1" className="btn btn--outline">Все новинки</Link>
+          </p>
+        </div>
+      </section>
+
+      {/* ПРОМО-БАННЕР */}
+      <section className="section">
+        <div className="container">
+          <Link href="/catalog?sale=1" className="promo-banner">
+            <div className="promo-banner__bg">
+              <img src="/images/p1.jpg" alt="Спальня" />
+            </div>
+            <div className="promo-banner__overlay"></div>
+            <div>
+              <h3>Скидки до 30% на мебель для спальни</h3>
+              <span className="btn btn--ghost">Смотреть акции</span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* БРЕНДЫ */}
+      <section className="section">
+        <div className="container">
+          <p className="section__subtitle">Партнёры</p>
+          <h2 className="section__title">Бренды</h2>
+          <div className="brands-wrap">
+            <div className="brands-track">
+              {brands.map((b, i) => (
+                <span key={i} className="brand-item">{b}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* О НАС */}
+      <section className="section" id="about">
+        <div className="container about-block">
+          <div className="about-block__image">
+            <img src="/images/p1.jpg" alt="Салон HERMITAGE DECOR" />
+          </div>
+          <div className="about-block__text">
+            <p className="section__subtitle">О нас</p>
+            <h2 className="section__title">HERMITAGE DECOR</h2>
+            <p>Мы — интерьерный бутик премиального сегмента. Представляем коллекции ведущих европейских и мировых фабрик, помогаем создавать пространства с характером и безупречным вкусом.</p>
+            <p>Каждый предмет в нашем каталоге отобран вручную: от итальянских диванов до эксклюзивной мебели из Турции и Китая.</p>
+            <div className="advantages">
+              <div className="advantage-item">
+                <h4>Премиальные фабрики</h4>
+                <p>Прямые поставки от производителей</p>
+              </div>
+              <div className="advantage-item">
+                <h4>Оригинальная продукция</h4>
+                <p>Сертификаты и гарантия подлинности</p>
+              </div>
+              <div className="advantage-item">
+                <h4>Гарантия качества</h4>
+                <p>Официальная гарантия на всю мебель</p>
+              </div>
+              <div className="advantage-item">
+                <h4>Доставка по России</h4>
+                <p>Бережная доставка и сборка</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer full />
+    </>
+  );
+}
