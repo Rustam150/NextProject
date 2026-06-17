@@ -273,9 +273,27 @@ export default function CatalogClient() {
       <div className={`categories-panel ${categoriesPanelOpen ? 'open' : ''}`}>
       <button
   type="button"
-  className="categories-panel__close"
   onClick={() => setCategoriesPanelOpen(false)}
   aria-label="Закрыть"
+  style={{
+    position: 'absolute',
+    top: '16px',
+    right: '16px',
+    width: '32px',
+    height: '32px',
+    background: '#fff',
+    border: '1px solid #ddd',
+    borderRadius: '50%',
+    fontSize: '20px',
+    lineHeight: '1',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    padding: 0,
+  }}
 >
   ×
 </button>
