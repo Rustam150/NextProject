@@ -1934,18 +1934,21 @@ body.filters-open {
 
 /* Исправление позиции кнопки закрытия */
 .categories-panel__close {
-  top: 80px !important;
+  top: 120px !important;
+  right: 20px !important;
   z-index: 100 !important;
 }
 
 .filters-panel__close {
-  top: 80px !important;
+  top: 120px !important;
+  right: 20px !important;
   z-index: 100 !important;
 }
 
 @media (max-width: 768px) {
   .categories-panel__close,
   .filters-panel__close {
-    top: 70px !important;
+    top: 100px !important;
+    right: 16px !important;
   }
 }
