@@ -1931,3 +1931,21 @@ body.filters-open {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* Исправление позиции кнопки закрытия */
+.categories-panel__close {
+  top: 80px !important;
+  z-index: 100 !important;
+}
+
+.filters-panel__close {
+  top: 80px !important;
+  z-index: 100 !important;
+}
+
+@media (max-width: 768px) {
+  .categories-panel__close,
+  .filters-panel__close {
+    top: 70px !important;
+  }
+}
