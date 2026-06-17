@@ -277,7 +277,7 @@ export default function CatalogClient() {
   aria-label="Закрыть"
   style={{
     position: 'absolute',
-    top: '16px',
+    top: '130px',
     right: '16px',
     width: '32px',
     height: '32px',
