@@ -276,8 +276,8 @@ export default function CatalogClient() {
   onClick={() => setCategoriesPanelOpen(false)}
   aria-label="Закрыть"
   style={{
-    position: 'absolute',
-    top: '130px',
+    position: 'relative',
+    top: '50px',
     right: '16px',
     width: '32px',
     height: '32px',
