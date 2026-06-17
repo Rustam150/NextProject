@@ -271,14 +271,14 @@ export default function CatalogClient() {
       </div>
 
       <div className={`categories-panel ${categoriesPanelOpen ? 'open' : ''}`}>
-        <button
-          type="button"
-          className="categories-panel__close"
-          onClick={() => setCategoriesPanelOpen(false)}
-          aria-label="Закрыть"
-        >
-          
-        </button>
+      <button
+  type="button"
+  className="categories-panel__close"
+  onClick={() => setCategoriesPanelOpen(false)}
+  aria-label="Закрыть"
+>
+  ×
+</button>
         <h2 className="categories-panel__title">Комнаты</h2>
         <div className="categories-panel__grid">
           <a

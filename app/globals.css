@@ -1932,27 +1932,35 @@ body.filters-open {
   font-weight: 500;
 }
 
-/* Принудительно опускаем кнопку закрытия */
-.categories-panel__close,
-[class*="categories-panel__close"],
-[class*="filters-panel__close"] {
-  top: 150px !important;
-  right: 15px !important;
-  z-index: 9999 !important;
-  background: rgba(0, 0, 0, 0.5) !important;
-  color: white !important;
+/* Кнопка закрытия панели категорий */
+.categories-panel__close {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 50% !important;
+  color: #333 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  z-index: 100 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  padding: 0 !important;
 }
 
-/* Если кнопка внутри панели */
-.categories-panel .categories-panel__close,
-.filters-panel .filters-panel__close {
-  position: fixed !important;
-  top: 150px !important;
+.categories-panel__close:hover {
+  background: #f5f5f5 !important;
 }
 
 @media (max-width: 768px) {
-  .categories-panel__close,
-  .filters-panel__close {
-    top: 120px !important;
+  .categories-panel__close {
+    top: 16px !important;
+    right: 16px !important;
   }
 }
