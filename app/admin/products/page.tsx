@@ -1,50 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockProducts, Product, mockBrands } from '@/lib/admin-data';
+import { Product, mockBrands } from '@/lib/admin-data';
 
-// Категории с сайта
 const CATEGORIES = [
-  'Спальня',
-  'Гостиная',
-  'Столовая',
-  'Кабинет',
-  'Кухня',
-  'Прихожая',
-  'Детская',
-  'Мягкая мебель',
-  'Посуда',
-  'Ароматы',
-  'Текстиль',
+  'Спальня', 'Гостиная', 'Столовая', 'Кабинет', 'Кухня',
+  'Прихожая', 'Детская', 'Мягкая мебель', 'Посуда', 'Ароматы', 'Текстиль',
 ];
 
-// Страны
-const COUNTRIES = [
-  'Италия',
-  'Германия',
-  'Испания',
-  'Франция',
-  'Турция',
-  'Китай',
-  'Другая',
-];
+const COUNTRIES = ['Италия', 'Германия', 'Испания', 'Франция', 'Турция', 'Китай', 'Другая'];
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    price: '',
-    category: '',
-    brand: '',
-    country: '',
-    image: '/images/p1.jpg',
-    inStock: true,
-    popular: false,
-    isNew: false,
-    description: '',
+    name: '', price: '', category: '', brand: '', country: '',
+    image: '/images/p1.jpg', inStock: true, popular: false, isNew: false, description: '',
+    sku: '', sizes: '', material: '', color: '', isSale: false,
   });
 
   useEffect(() => {
@@ -52,7 +26,15 @@ export default function ProductsPage() {
     if (saved) {
       setProducts(JSON.parse(saved));
     } else {
-      setProducts(mockProducts);
+      import('@/lib/data').then(({ HERMITAGE }) => {
+        const productsFromData = HERMITAGE.products.map((p: any) => ({
+          ...p,
+          image: p.images?.[0] || '/images/p1.jpg',
+          brand: p.factory || '',
+        }));
+        setProducts(productsFromData);
+        localStorage.setItem('products', JSON.stringify(productsFromData));
+      });
     }
   }, []);
 
@@ -77,62 +59,72 @@ export default function ProductsPage() {
   const handleAdd = () => {
     setEditingProduct(null);
     setFormData({
-      name: '',
-      price: '',
-      category: '',
-      brand: '',
-      country: '',
-      image: '/images/p1.jpg',
-      inStock: true,
-      popular: false,
-      isNew: false,
-      description: '',
+      name: '', price: '', category: '', brand: '', country: '',
+      image: '/images/p1.jpg', inStock: true, popular: false, isNew: false, description: '',
+      sku: '', sizes: '', material: '', color: '', isSale: false,
     });
     setShowModal(true);
   };
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: any) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
       price: String(product.price),
       category: product.category,
-      brand: product.brand,
+      brand: product.brand || product.factory || '',
       country: product.country,
-      image: product.image,
+      image: product.images?.[0] || product.image || '/images/p1.jpg',
       inStock: product.inStock,
-      popular: product.popular,
-      isNew: product.isNew,
+      popular: product.popular || false,
+      isNew: product.isNew || false,
       description: product.description || '',
+      sku: product.sku || '',
+      sizes: product.sizes || '',
+      material: product.material || '',
+      color: product.color || '',
+      isSale: product.isSale || false,
     });
     setShowModal(true);
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) {
-      alert('Введите название товара');
-      return;
-    }
-
+    if (!formData.name.trim()) { alert('Введите название товара'); return; }
     const price = Number(formData.price) || 0;
 
     if (editingProduct) {
-      const updated = products.map(p =>
-        p.id === editingProduct.id ? { ...p, ...formData, price, id: editingProduct.id } : p
-      );
+      const updated = products.map(p => {
+        if (p.id === editingProduct.id) {
+          return {
+            ...p,
+            ...formData,
+            price,
+            id: editingProduct.id,
+            factory: formData.brand,
+            images: [formData.image],
+          };
+        }
+        return p;
+      });
       setProducts(updated);
       localStorage.setItem('products', JSON.stringify(updated));
     } else {
-      const newProduct: Product = {
-        id: Math.max(...products.map(p => p.id), 0) + 1,
+      const newProduct = {
         ...formData,
+        id: Math.max(...products.map(p => p.id), 0) + 1,
         price,
+        factory: formData.brand,
+        images: [formData.image],
+        isSale: formData.isSale,
+        sku: formData.sku || `SKU-${Date.now()}`,
+        sizes: formData.sizes,
+        material: formData.material,
+        color: formData.color,
       };
       const updated = [...products, newProduct];
       setProducts(updated);
       localStorage.setItem('products', JSON.stringify(updated));
     }
-
     setShowModal(false);
     setEditingProduct(null);
   };
@@ -140,42 +132,11 @@ export default function ProductsPage() {
   return (
     <div>
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>
-          Товары
-        </h1>
-        <button 
-          onClick={handleAdd}
-          className="admin-btn" 
-          style={{
-            padding: '12px 24px',
-            background: '#b89968',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          Добавить товар
-        </button>
+        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>Товары</h1>
+        <button onClick={handleAdd} className="admin-btn" style={{ padding: '12px 24px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Добавить товар</button>
       </div>
 
-      <input
-        type="text"
-        placeholder="Поиск товаров..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="search-input"
-        style={{
-          width: '100%',
-          padding: '12px',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          marginBottom: '24px',
-          fontSize: '14px',
-          boxSizing: 'border-box',
-        }}
-      />
+      <input type="text" placeholder="Поиск товаров..." value={search} onChange={(e) => setSearch(e.target.value)} className="search-input" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '24px', fontSize: '14px', boxSizing: 'border-box' }} />
 
       <div className="products-table" style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
@@ -197,45 +158,13 @@ export default function ProductsPage() {
                 <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{product.category}</td>
                 <td style={{ padding: '16px', fontSize: '14px' }}>{product.price.toLocaleString()} ₽</td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{
-                    padding: '4px 12px',
-                    background: product.inStock ? '#e8f5e9' : '#ffebee',
-                    color: product.inStock ? '#2e7d32' : '#c62828',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                  }}>
+                  <span style={{ padding: '4px 12px', background: product.inStock ? '#e8f5e9' : '#ffebee', color: product.inStock ? '#2e7d32' : '#c62828', borderRadius: '12px', fontSize: '12px' }}>
                     {product.inStock ? 'В наличии' : 'Нет'}
                   </span>
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
-                  <button 
-                    onClick={() => handleEdit(product)}
-                    style={{
-                      padding: '6px 12px',
-                      background: '#f5f5f5',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      marginRight: '8px',
-                    }}
-                  >
-                    Редактировать
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    style={{
-                      padding: '6px 12px',
-                      background: '#ffebee',
-                      color: '#c62828',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                    }}
-                  >
-                    Удалить
-                  </button>
+                  <button onClick={() => handleEdit(product)} style={{ padding: '6px 12px', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', marginRight: '8px' }}>Редактировать</button>
+                  <button onClick={() => handleDelete(product.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Удалить</button>
                 </td>
               </tr>
             ))}
@@ -243,231 +172,101 @@ export default function ProductsPage() {
         </table>
       </div>
 
-      {/* Модальное окно */}
       {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 2000,
-          padding: '16px',
-          overflowY: 'auto',
-        }}>
-          <div style={{
-            background: '#fff',
-            padding: '32px',
-            borderRadius: '8px',
-            width: '100%',
-            maxWidth: '600px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }}>
-            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', margin: '0 0 24px 0' }}>
-              {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
-            </h2>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px', overflowY: 'auto' }}>
+          <div style={{ background: '#fff', padding: '32px', borderRadius: '8px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', margin: '0 0 24px 0' }}>{editingProduct ? 'Редактировать товар' : 'Добавить товар'}</h2>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Название *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Название *</label>
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Цена *
-              </label>
-              <input
-                type="text"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/\D/g, '') })}
-                placeholder="0"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Цена *</label>
+              <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/\D/g, '') })} placeholder="0" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Категория
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  background: '#fff',
-                }}
-              >
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Категория</label>
+              <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите категорию</option>
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
+                {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Бренд
-              </label>
-              <select
-                value={formData.brand}
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  background: '#fff',
-                }}
-              >
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Бренд</label>
+              <select value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите бренд</option>
-                {mockBrands.map(brand => (
-                  <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>
-                ))}
+                {mockBrands.map(brand => <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>)}
               </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Страна
-              </label>
-              <select
-                value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  background: '#fff',
-                }}
-              >
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Страна</label>
+              <select value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите страну</option>
-                {COUNTRIES.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
+                {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
               </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                Описание
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Артикул</label>
+              <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Размеры</label>
+              <input type="text" value={formData.sizes} onChange={(e) => setFormData({ ...formData, sizes: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Материал</label>
+              <input type="text" value={formData.material} onChange={(e) => setFormData({ ...formData, material: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Цвет</label>
+              <input type="text" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Описание</label>
+              <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={formData.inStock}
-                  onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
+                <input type="checkbox" checked={formData.inStock} onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                 В наличии
               </label>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={formData.popular}
-                  onChange={(e) => setFormData({ ...formData, popular: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
+                <input type="checkbox" checked={formData.popular} onChange={(e) => setFormData({ ...formData, popular: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                 Популярный
+              </label>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
+                <input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                Новинка
               </label>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={formData.isNew}
-                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                Новинка
+                <input type="checkbox" checked={formData.isSale} onChange={(e) => setFormData({ ...formData, isSale: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                Акция
               </label>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={handleSave}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: '#b89968',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                Сохранить
-              </button>
-              <button
-                onClick={() => { setShowModal(false); setEditingProduct(null); }}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: '#f5f5f5',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                Отмена
-              </button>
+              <button onClick={handleSave} style={{ flex: 1, padding: '12px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Сохранить</button>
+              <button onClick={() => { setShowModal(false); setEditingProduct(null); }} style={{ flex: 1, padding: '12px', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Отмена</button>
             </div>
           </div>
         </div>
