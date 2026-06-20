@@ -166,38 +166,45 @@ ${lines.join('\n')}
         <div className="cart-layout">
           <div>
             <div className="cart-list">
-              {items.map((item) => (
-                <div key={item.id} className="cart-item">
-                  <Link href={`/product?id=${item.id}`} className="cart-item__img">
-                    <img src={item.images?.[0] || item.image} alt={item.name} />
-                  </Link>
-                  <div className="cart-item__info">
-                    <h3>
-                      <Link href={`/product?id=${item.id}`}>{item.name}</Link>
-                    </h3>
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      {item.country} · {item.factory}
-                    </p>
-                    <p className="product-card__price">{formatPrice(item.price)}</p>
-                    <div className="qty-control">
-                      <button type="button" onClick={() => updateQty(String(item.id), -1)}>
-                        −
-                      </button>
-                      <span>{item.qty}</span>
-                      <button type="button" onClick={() => updateQty(String(item.id), 1)}>
-                        +
+            {cart.map((cartItem) => {
+                const product = HERMITAGE.products.find(
+                  (p: any) => String(p.id) === String(cartItem.id)
+                );
+                if (!product) return null;
+                
+                return (
+                  <div key={cartItem.id} className="cart-item">
+                    <Link href={`/product?id=${cartItem.id}`} className="cart-item__img">
+                      <img src={product.images?.[0] || product.image} alt={product.name} />
+                    </Link>
+                    <div className="cart-item__info">
+                      <h3>
+                        <Link href={`/product?id=${cartItem.id}`}>{product.name}</Link>
+                      </h3>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {product.country} · {product.factory}
+                      </p>
+                      <p className="product-card__price">{formatPrice(product.price)}</p>
+                      <div className="qty-control">
+                        <button type="button" onClick={() => updateQty(cartItem.id, -1)}>
+                          −
+                        </button>
+                        <span>{cartItem.qty}</span>
+                        <button type="button" onClick={() => updateQty(cartItem.id, 1)}>
+                          +
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        className="cart-remove"
+                        onClick={() => removeFromCart(cartItem.id)}
+                      >
+                        Удалить
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      className="cart-remove"
-                      onClick={() => removeFromCart(String(item.id))}
-                    >
-                      Удалить
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <p style={{ fontSize: 18, marginTop: 16 }}>
               Итого: <strong>{formatPrice(total)}</strong>
