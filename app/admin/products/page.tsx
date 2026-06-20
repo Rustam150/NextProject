@@ -4,8 +4,17 @@ import { useState, useEffect } from 'react';
 import { Product, mockBrands } from '@/lib/admin-data';
 
 const CATEGORIES = [
-  'Спальня', 'Гостиная', 'Столовая', 'Кабинет', 'Кухня',
-  'Прихожая', 'Детская', 'Мягкая мебель', 'Посуда', 'Ароматы', 'Текстиль',
+  { id: 'bedroom', name: 'Спальня' },
+  { id: 'living', name: 'Гостиная' },
+  { id: 'dining', name: 'Столовая' },
+  { id: 'office', name: 'Кабинет' },
+  { id: 'kitchen', name: 'Кухня' },
+  { id: 'hallway', name: 'Прихожая' },
+  { id: 'kids', name: 'Детская' },
+  { id: 'soft', name: 'Мягкая мебель' },
+  { id: 'dishes', name: 'Посуда' },
+  { id: 'aromas', name: 'Ароматы' },
+  { id: 'textile', name: 'Текстиль' },
 ];
 
 const COUNTRIES = ['Италия', 'Германия', 'Испания', 'Франция', 'Турция', 'Китай', 'Другая'];
@@ -29,7 +38,6 @@ export default function ProductsPage() {
   const loadProducts = async () => {
     setLoading(true);
     
-    // Пробуем загрузить из localStorage
     const saved = localStorage.getItem('products');
     
     if (saved) {
@@ -37,7 +45,6 @@ export default function ProductsPage() {
       console.log('Loaded from localStorage:', parsed.length, 'products');
       setProducts(parsed);
     } else {
-      // Если нет - загружаем из lib/data.ts
       try {
         const dataModule = await import('@/lib/data');
         const hermitageData = dataModule.HERMITAGE;
@@ -196,7 +203,7 @@ export default function ProductsPage() {
               <tr key={product.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '16px', fontSize: '14px' }}>{product.id}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.name}</td>
-                <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{product.category}</td>
+                <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{CATEGORIES.find(c => c.id === product.category)?.name || product.category}</td>
                 <td style={{ padding: '16px', fontSize: '14px' }}>{product.price.toLocaleString()} ₽</td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 12px', background: product.inStock ? '#e8f5e9' : '#ffebee', color: product.inStock ? '#2e7d32' : '#c62828', borderRadius: '12px', fontSize: '12px' }}>
@@ -232,7 +239,7 @@ export default function ProductsPage() {
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Категория</label>
               <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите категорию</option>
-                {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                {CATEGORIES.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
             </div>
 
