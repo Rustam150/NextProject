@@ -6,17 +6,31 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BackButton from '../components/BackButton';
 import ProductCard from '../components/ProductCard';
-import { getProduct } from '../../lib/data';
+import { HERMITAGE } from '../../lib/data';
 import { Store } from '../../lib/store';
 
 export default function FavoritesPage() {
   const [favIds, setFavIds] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    setFavIds(Store.favorites());
+    const ids = Store.favorites();
+    setFavIds(ids);
+
+    const foundProducts = ids
+      .map((id) => {
+        return HERMITAGE.products.find((p) => String(p.id) === String(id));
+      })
+      .filter(Boolean);
+
+    setProducts(foundProducts);
   }, []);
 
-  const products = favIds.map(getProduct).filter(Boolean);
+  const removeFromFavorites = (id: string) => {
+    Store.toggleFavorite(id);
+    setFavIds(favIds.filter((fid) => fid !== id));
+    setProducts(products.filter((p) => String(p.id) !== id));
+  };
 
   return (
     <>
@@ -35,7 +49,29 @@ export default function FavoritesPage() {
       <div className="container section" style={{ paddingTop: 0 }}>
         {products.length > 0 ? (
           <div className="products-grid">
-            {products.map((p) => p && <ProductCard key={p.id} product={p} />)}
+            {products.map((p) => (
+              <div key={p.id} style={{ position: 'relative' }}>
+                <ProductCard product={p} />
+                <button
+                  onClick={() => removeFromFavorites(String(p.id))}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="empty-state">
