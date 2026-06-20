@@ -19,6 +19,23 @@ const CATEGORIES = [
 
 const COUNTRIES = ['Италия', 'Германия', 'Испания', 'Франция', 'Турция', 'Китай', 'Другая'];
 
+const AVAILABILITY_OPTIONS = [
+  { value: 'in_stock', label: 'В наличии' },
+  { value: 'made_to_order', label: 'Под заказ' },
+];
+
+const COLOR_OPTIONS = [
+  'Бежевый', 'Коричневый', 'Серый', 'Чёрный', 'Белый',
+  'Синий', 'Зелёный', 'Красный', 'Жёлтый', 'Оранжевый',
+  'Фиолетовый', 'Розовый', 'Голубой', 'Бирюзовый', 'Другой',
+];
+
+const MATERIAL_OPTIONS = [
+  'Ткань', 'Велюр', 'Бархат', 'Кожа', 'Экокожа',
+  'Дерево', 'МДФ', 'ДСП', 'Металл', 'Стекло',
+  'Пластик', 'Камень', 'Другой',
+];
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
@@ -27,7 +44,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '', price: '', category: '', brand: '', country: '',
-    image: '/images/p1.jpg', inStock: true, popular: false, isNew: false, description: '',
+    image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
     sku: '', sizes: '', material: '', color: '', isSale: false,
   });
 
@@ -104,7 +121,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData({
       name: '', price: '', category: '', brand: '', country: '',
-      image: '/images/p1.jpg', inStock: true, popular: false, isNew: false, description: '',
+      image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
       sku: '', sizes: '', material: '', color: '', isSale: false,
     });
     setShowModal(true);
@@ -119,7 +136,7 @@ export default function ProductsPage() {
       brand: product.brand || product.factory || '',
       country: product.country,
       image: product.images?.[0] || product.image || '/images/p1.jpg',
-      inStock: product.inStock,
+      inStockStatus: product.inStock ? 'in_stock' : 'made_to_order',
       popular: product.popular || false,
       isNew: product.isNew || false,
       description: product.description || '',
@@ -146,6 +163,7 @@ export default function ProductsPage() {
             id: editingProduct.id,
             factory: formData.brand,
             images: [formData.image],
+            inStock: formData.inStockStatus === 'in_stock',
           };
         }
         return p;
@@ -164,6 +182,7 @@ export default function ProductsPage() {
         sizes: formData.sizes,
         material: formData.material,
         color: formData.color,
+        inStock: formData.inStockStatus === 'in_stock',
       };
       const updated = [...products, newProduct];
       setProducts(updated);
@@ -217,7 +236,7 @@ export default function ProductsPage() {
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.price.toLocaleString()} ₽</td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 12px', background: product.inStock ? '#e8f5e9' : '#ffebee', color: product.inStock ? '#2e7d32' : '#c62828', borderRadius: '12px', fontSize: '12px', display: 'inline-block' }}>
-                    {product.inStock ? 'В наличии' : 'Нет'}
+                    {product.inStock ? 'В наличии' : 'Под заказ'}
                   </span>
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
@@ -281,24 +300,36 @@ export default function ProductsPage() {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Материал</label>
-              <input type="text" value={formData.material} onChange={(e) => setFormData({ ...formData, material: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+              <select value={formData.material} onChange={(e) => setFormData({ ...formData, material: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+                <option value="">Выберите материал</option>
+                {MATERIAL_OPTIONS.map(material => (
+                  <option key={material} value={material}>{material}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Цвет</label>
-              <input type="text" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+              <select value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+                <option value="">Выберите цвет</option>
+                {COLOR_OPTIONS.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Наличие</label>
+              <select value={formData.inStockStatus} onChange={(e) => setFormData({ ...formData, inStockStatus: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+                {AVAILABILITY_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Описание</label>
               <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input type="checkbox" checked={formData.inStock} onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                В наличии
-              </label>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
