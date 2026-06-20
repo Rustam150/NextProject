@@ -11,25 +11,21 @@ import { Store } from '../../lib/store';
 
 export default function FavoritesPage() {
   const [favIds, setFavIds] = useState<string[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
     const ids = Store.favorites();
     setFavIds(ids);
-
-    const foundProducts = ids
-      .map((id) => {
-        return HERMITAGE.products.find((p) => String(p.id) === String(id));
-      })
-      .filter(Boolean);
-
-    setProducts(foundProducts);
   }, []);
+
+  const products = favIds
+    .map((id) => {
+      return HERMITAGE.products.find((p) => String(p.id) === String(id));
+    })
+    .filter(Boolean);
 
   const removeFromFavorites = (id: string) => {
     Store.toggleFavorite(id);
     setFavIds(favIds.filter((fid) => fid !== id));
-    setProducts(products.filter((p) => String(p.id) !== id));
   };
 
   return (
@@ -49,7 +45,7 @@ export default function FavoritesPage() {
       <div className="container section" style={{ paddingTop: 0 }}>
         {products.length > 0 ? (
           <div className="products-grid">
-            {products.map((p) => (
+            {products.map((p: any) => (
               <div key={p.id} style={{ position: 'relative' }}>
                 <ProductCard product={p} />
                 <button
@@ -66,6 +62,7 @@ export default function FavoritesPage() {
                     cursor: 'pointer',
                     fontSize: '18px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    zIndex: 10,
                   }}
                 >
                   ×
