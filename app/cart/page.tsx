@@ -35,6 +35,15 @@ export default function CartPage() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setCart(Store.cart());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const items: CartItem[] = cart
     .map((c) => {
       const p = HERMITAGE.products.find((p: any) => String(p.id) === String(c.id));
@@ -53,12 +62,14 @@ export default function CartPage() {
     } else {
       Store.updateCartQty(id, newQty);
     }
-    setCart(Store.cart());
+    const updatedCart = Store.cart();
+    setCart(updatedCart);
   };
 
   const removeFromCart = (id: string) => {
     Store.removeFromCart(id);
-    setCart(Store.cart());
+    const updatedCart = Store.cart();
+    setCart(updatedCart);
   };
 
   const submitOrder = (e: React.FormEvent) => {
