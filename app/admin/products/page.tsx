@@ -1,11 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { mockProducts, Product } from '@/lib/admin-data';
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    price: 0,
+    category: '',
+    brand: '',
+    country: '',
+    image: '/images/p1.jpg',
+    inStock: true,
+    popular: false,
+    isNew: false,
+    description: '',
+  });
+
+  useEffect(() => {
+    // Загружаем из localStorage или используем моковые данные
+    const saved = localStorage.getItem('products');
+    if (saved) {
+      setProducts(JSON.parse(saved));
+    } else {
+      setProducts(mockProducts);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      localStorage.setItem('products', JSON.stringify(products));
+    }
+  }, [products]);
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -13,8 +43,70 @@ export default function ProductsPage() {
 
   const handleDelete = (id: number) => {
     if (confirm('Удалить товар?')) {
-      setProducts(products.filter(p => p.id !== id));
+      const updated = products.filter(p => p.id !== id);
+      setProducts(updated);
+      localStorage.setItem('products', JSON.stringify(updated));
     }
+  };
+
+  const handleAdd = () => {
+    setEditingProduct(null);
+    setFormData({
+      name: '',
+      price: 0,
+      category: '',
+      brand: '',
+      country: '',
+      image: '/images/p1.jpg',
+      inStock: true,
+      popular: false,
+      isNew: false,
+      description: '',
+    });
+    setShowModal(true);
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      brand: product.brand,
+      country: product.country,
+      image: product.image,
+      inStock: product.inStock,
+      popular: product.popular,
+      isNew: product.isNew,
+      description: product.description || '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    if (!formData.name.trim()) {
+      alert('Введите название товара');
+      return;
+    }
+
+    if (editingProduct) {
+      const updated = products.map(p =>
+        p.id === editingProduct.id ? { ...p, ...formData, id: editingProduct.id } : p
+      );
+      setProducts(updated);
+      localStorage.setItem('products', JSON.stringify(updated));
+    } else {
+      const newProduct: Product = {
+        id: Math.max(...products.map(p => p.id), 0) + 1,
+        ...formData,
+      };
+      const updated = [...products, newProduct];
+      setProducts(updated);
+      localStorage.setItem('products', JSON.stringify(updated));
+    }
+
+    setShowModal(false);
+    setEditingProduct(null);
   };
 
   return (
@@ -23,15 +115,19 @@ export default function ProductsPage() {
         <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>
           Товары
         </h1>
-        <button className="admin-btn" style={{
-          padding: '12px 24px',
-          background: '#b89968',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '14px',
-        }}>
+        <button 
+          onClick={handleAdd}
+          className="admin-btn" 
+          style={{
+            padding: '12px 24px',
+            background: '#b89968',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
+        >
           Добавить товар
         </button>
       </div>
@@ -84,15 +180,18 @@ export default function ProductsPage() {
                   </span>
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
-                  <button style={{
-                    padding: '6px 12px',
-                    background: '#f5f5f5',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    marginRight: '8px',
-                  }}>
+                  <button 
+                    onClick={() => handleEdit(product)}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#f5f5f5',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      marginRight: '8px',
+                    }}
+                  >
                     Редактировать
                   </button>
                   <button
@@ -115,6 +214,220 @@ export default function ProductsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Модальное окно */}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+          padding: '16px',
+          overflowY: 'auto',
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: '32px',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }}>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', marginBottom: '24px', margin: '0 0 24px 0' }}>
+              {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
+            </h2>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Название *
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Цена *
+              </label>
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Категория
+              </label>
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Бренд
+              </label>
+              <input
+                type="text"
+                value={formData.brand}
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Страна
+              </label>
+              <input
+                type="text"
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+                Описание
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.inStock}
+                  onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                В наличии
+              </label>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.popular}
+                  onChange={(e) => setFormData({ ...formData, popular: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                Популярный
+              </label>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={formData.isNew}
+                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                Новинка
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={handleSave}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#b89968',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Сохранить
+              </button>
+              <button
+                onClick={() => { setShowModal(false); setEditingProduct(null); }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  background: '#f5f5f5',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
