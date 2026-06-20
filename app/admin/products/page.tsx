@@ -22,6 +22,7 @@ const COUNTRIES = ['Италия', 'Германия', 'Испания', 'Фра
 const AVAILABILITY_OPTIONS = [
   { value: 'in_stock', label: 'В наличии' },
   { value: 'made_to_order', label: 'Под заказ' },
+  { value: 'both', label: 'Есть и в наличии и под заказ' },
 ];
 
 const COLOR_OPTIONS = [
@@ -46,6 +47,9 @@ export default function ProductsPage() {
     name: '', price: '', category: '', brand: '', country: '',
     image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
     sku: '', sizes: '', material: '', color: '', isSale: false,
+    customColor: '',
+    customMaterial: '',
+    customCountry: '',
   });
 
   useEffect(() => {
@@ -123,6 +127,9 @@ export default function ProductsPage() {
       name: '', price: '', category: '', brand: '', country: '',
       image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
       sku: '', sizes: '', material: '', color: '', isSale: false,
+      customColor: '',
+      customMaterial: '',
+      customCountry: '',
     });
     setShowModal(true);
   };
@@ -136,7 +143,7 @@ export default function ProductsPage() {
       brand: product.brand || product.factory || '',
       country: product.country,
       image: product.images?.[0] || product.image || '/images/p1.jpg',
-      inStockStatus: product.inStock ? 'in_stock' : 'made_to_order',
+      inStockStatus: product.inStock === 'both' ? 'both' : (product.inStock ? 'in_stock' : 'made_to_order'),
       popular: product.popular || false,
       isNew: product.isNew || false,
       description: product.description || '',
@@ -145,13 +152,38 @@ export default function ProductsPage() {
       material: product.material || '',
       color: product.color || '',
       isSale: product.isSale || false,
+      customColor: !COLOR_OPTIONS.includes(product.color) ? product.color : '',
+      customMaterial: !MATERIAL_OPTIONS.includes(product.material) ? product.material : '',
+      customCountry: !COUNTRIES.includes(product.country) ? product.country : '',
     });
     setShowModal(true);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = () => {
     if (!formData.name.trim()) { alert('Введите название товара'); return; }
     const price = Number(formData.price) || 0;
+
+    const finalColor = formData.color === 'Другой' ? formData.customColor : formData.color;
+    const finalMaterial = formData.material === 'Другой' ? formData.customMaterial : formData.material;
+    const finalCountry = formData.country === 'Другая' ? formData.customCountry : formData.country;
+
+    let inStockValue: boolean | string = true;
+    if (formData.inStockStatus === 'made_to_order') {
+      inStockValue = false;
+    } else if (formData.inStockStatus === 'both') {
+      inStockValue = 'both';
+    }
 
     if (editingProduct) {
       const updated = products.map(p => {
@@ -163,7 +195,10 @@ export default function ProductsPage() {
             id: editingProduct.id,
             factory: formData.brand,
             images: [formData.image],
-            inStock: formData.inStockStatus === 'in_stock',
+            inStock: inStockValue,
+            color: finalColor,
+            material: finalMaterial,
+            country: finalCountry,
           };
         }
         return p;
@@ -180,9 +215,10 @@ export default function ProductsPage() {
         isSale: formData.isSale,
         sku: formData.sku || `SKU-${Date.now()}`,
         sizes: formData.sizes,
-        material: formData.material,
-        color: formData.color,
-        inStock: formData.inStockStatus === 'in_stock',
+        material: finalMaterial,
+        color: finalColor,
+        country: finalCountry,
+        inStock: inStockValue,
       };
       const updated = [...products, newProduct];
       setProducts(updated);
@@ -235,8 +271,8 @@ export default function ProductsPage() {
                 <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{CATEGORIES.find(c => c.id === product.category)?.name || product.category}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.price.toLocaleString()} ₽</td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 12px', background: product.inStock ? '#e8f5e9' : '#ffebee', color: product.inStock ? '#2e7d32' : '#c62828', borderRadius: '12px', fontSize: '12px', display: 'inline-block' }}>
-                    {product.inStock ? 'В наличии' : 'Под заказ'}
+                  <span style={{ padding: '4px 12px', background: product.inStock === 'both' ? '#fff3e0' : (product.inStock ? '#e8f5e9' : '#ffebee'), color: product.inStock === 'both' ? '#e65100' : (product.inStock ? '#2e7d32' : '#c62828'), borderRadius: '12px', fontSize: '12px', display: 'inline-block' }}>
+                    {product.inStock === 'both' ? 'Оба варианта' : (product.inStock ? 'В наличии' : 'Под заказ')}
                   </span>
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
@@ -265,6 +301,14 @@ export default function ProductsPage() {
             </div>
 
             <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Фото товара</label>
+              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+              {formData.image && (
+                <img src={formData.image} alt="Preview" style={{ marginTop: '12px', maxWidth: '200px', borderRadius: '4px' }} />
+              )}
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Категория</label>
               <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите категорию</option>
@@ -286,6 +330,9 @@ export default function ProductsPage() {
                 <option value="">Выберите страну</option>
                 {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
               </select>
+              {formData.country === 'Другая' && (
+                <input type="text" value={formData.customCountry} onChange={(e) => setFormData({ ...formData, customCountry: e.target.value })} placeholder="Введите страну" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
+              )}
             </div>
 
             <div style={{ marginBottom: '16px' }}>
@@ -306,6 +353,9 @@ export default function ProductsPage() {
                   <option key={material} value={material}>{material}</option>
                 ))}
               </select>
+              {formData.material === 'Другой' && (
+                <input type="text" value={formData.customMaterial} onChange={(e) => setFormData({ ...formData, customMaterial: e.target.value })} placeholder="Введите материал" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
+              )}
             </div>
 
             <div style={{ marginBottom: '16px' }}>
@@ -316,6 +366,9 @@ export default function ProductsPage() {
                   <option key={color} value={color}>{color}</option>
                 ))}
               </select>
+              {formData.color === 'Другой' && (
+                <input type="text" value={formData.customColor} onChange={(e) => setFormData({ ...formData, customColor: e.target.value })} placeholder="Введите цвет" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
+              )}
             </div>
 
             <div style={{ marginBottom: '16px' }}>
