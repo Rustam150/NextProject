@@ -1,7 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockProducts, Product } from '@/lib/admin-data';
+import { mockProducts, Product, mockBrands } from '@/lib/admin-data';
+
+// Категории с сайта
+const CATEGORIES = [
+  'Спальня',
+  'Гостиная',
+  'Столовая',
+  'Кабинет',
+  'Кухня',
+  'Прихожая',
+  'Детская',
+  'Мягкая мебель',
+  'Посуда',
+  'Ароматы',
+  'Текстиль',
+];
+
+// Страны
+const COUNTRIES = [
+  'Италия',
+  'Германия',
+  'Испания',
+  'Франция',
+  'Турция',
+  'Китай',
+  'Другая',
+];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -10,7 +36,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    price: 0,
+    price: '',
     category: '',
     brand: '',
     country: '',
@@ -22,7 +48,6 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
-    // Загружаем из localStorage или используем моковые данные
     const saved = localStorage.getItem('products');
     if (saved) {
       setProducts(JSON.parse(saved));
@@ -53,7 +78,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData({
       name: '',
-      price: 0,
+      price: '',
       category: '',
       brand: '',
       country: '',
@@ -70,7 +95,7 @@ export default function ProductsPage() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      price: product.price,
+      price: String(product.price),
       category: product.category,
       brand: product.brand,
       country: product.country,
@@ -89,9 +114,11 @@ export default function ProductsPage() {
       return;
     }
 
+    const price = Number(formData.price) || 0;
+
     if (editingProduct) {
       const updated = products.map(p =>
-        p.id === editingProduct.id ? { ...p, ...formData, id: editingProduct.id } : p
+        p.id === editingProduct.id ? { ...p, ...formData, price, id: editingProduct.id } : p
       );
       setProducts(updated);
       localStorage.setItem('products', JSON.stringify(updated));
@@ -99,6 +126,7 @@ export default function ProductsPage() {
       const newProduct: Product = {
         id: Math.max(...products.map(p => p.id), 0) + 1,
         ...formData,
+        price,
       };
       const updated = [...products, newProduct];
       setProducts(updated);
@@ -240,7 +268,7 @@ export default function ProductsPage() {
             maxHeight: '90vh',
             overflowY: 'auto',
           }}>
-            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', marginBottom: '24px', margin: '0 0 24px 0' }}>
+            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', margin: '0 0 24px 0' }}>
               {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
             </h2>
 
@@ -268,9 +296,10 @@ export default function ProductsPage() {
                 Цена *
               </label>
               <input
-                type="number"
+                type="text"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/\D/g, '') })}
+                placeholder="0"
                 style={{
                   width: '100%',
                   padding: '12px',
@@ -286,8 +315,7 @@ export default function ProductsPage() {
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
                 Категория
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 style={{
@@ -297,16 +325,21 @@ export default function ProductsPage() {
                   borderRadius: '4px',
                   fontSize: '14px',
                   boxSizing: 'border-box',
+                  background: '#fff',
                 }}
-              />
+              >
+                <option value="">Выберите категорию</option>
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
                 Бренд
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 style={{
@@ -316,16 +349,21 @@ export default function ProductsPage() {
                   borderRadius: '4px',
                   fontSize: '14px',
                   boxSizing: 'border-box',
+                  background: '#fff',
                 }}
-              />
+              >
+                <option value="">Выберите бренд</option>
+                {mockBrands.map(brand => (
+                  <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
                 Страна
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 style={{
@@ -335,8 +373,14 @@ export default function ProductsPage() {
                   borderRadius: '4px',
                   fontSize: '14px',
                   boxSizing: 'border-box',
+                  background: '#fff',
                 }}
-              />
+              >
+                <option value="">Выберите страну</option>
+                {COUNTRIES.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>

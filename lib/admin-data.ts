@@ -25,9 +25,15 @@ export interface Product {
   }
   
   export interface Category {
-    id: string;
+    id: number;
     name: string;
     image: string;
+  }
+  
+  export interface Brand {
+    id: number;
+    name: string;
+    country: string;
   }
   
   export const mockProducts: Product[] = [
@@ -98,24 +104,18 @@ export interface Product {
   ];
   
   export const mockCategories: Category[] = [
-    { id: 'bedroom', name: 'Спальня', image: '/images/p1.jpg' },
-    { id: 'living', name: 'Гостиная', image: '/images/p1.jpg' },
-    { id: 'dining', name: 'Столовая', image: '/images/p1.jpg' },
-    { id: 'office', name: 'Кабинет', image: '/images/p1.jpg' },
-    { id: 'kitchen', name: 'Кухня', image: '/images/p1.jpg' },
-    { id: 'hallway', name: 'Прихожая', image: '/images/p1.jpg' },
-    { id: 'kids', name: 'Детская', image: '/images/p1.jpg' },
-    { id: 'soft', name: 'Мягкая мебель', image: '/images/p1.jpg' },
-    { id: 'dishes', name: 'Посуда', image: '/images/p1.jpg' },
-    { id: 'aromas', name: 'Ароматы', image: '/images/p1.jpg' },
-    { id: 'textile', name: 'Текстиль', image: '/images/p1.jpg' },
+    { id: 1, name: 'Спальня', image: '/images/p1.jpg' },
+    { id: 2, name: 'Гостиная', image: '/images/p1.jpg' },
+    { id: 3, name: 'Столовая', image: '/images/p1.jpg' },
+    { id: 4, name: 'Кабинет', image: '/images/p1.jpg' },
+    { id: 5, name: 'Кухня', image: '/images/p1.jpg' },
+    { id: 6, name: 'Прихожая', image: '/images/p1.jpg' },
+    { id: 7, name: 'Детская', image: '/images/p1.jpg' },
+    { id: 8, name: 'Мягкая мебель', image: '/images/p1.jpg' },
+    { id: 9, name: 'Посуда', image: '/images/p1.jpg' },
+    { id: 10, name: 'Ароматы', image: '/images/p1.jpg' },
+    { id: 11, name: 'Текстиль', image: '/images/p1.jpg' },
   ];
-
-  export interface Brand {
-    id: number;
-    name: string;
-    country: string;
-  }
   
   export const mockBrands: Brand[] = [
     { id: 1, name: 'Poliform', country: 'Италия' },
