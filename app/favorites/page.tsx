@@ -6,36 +6,23 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BackButton from '../components/BackButton';
 import ProductCard from '../components/ProductCard';
-import { HERMITAGE } from '../../lib/data';
+import { useStoreData } from '@/lib/use-store-data';
 
 export default function FavoritesPage() {
+  const { data: HERMITAGE, loaded } = useStoreData();
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadFavorites = () => {
-      console.log('HERMITAGE.products:', HERMITAGE.products);
-      console.log('HERMITAGE.products.length:', HERMITAGE.products.length);
-      
-      const favIds = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
-      console.log('favIds:', favIds);
-      
-      const found = favIds
-        .map((id: any) => {
-          const product = HERMITAGE.products.find((p) => String(p.id) === String(id));
-          console.log('Looking for ID:', id, 'Found:', product);
-          return product;
-        })
-        .filter(Boolean);
-        
-      console.log('Found products:', found);
-      setProducts(found);
-    };
-
-    loadFavorites();
+    if (!loaded) return;
     
-    window.addEventListener('storage', loadFavorites);
-    return () => window.removeEventListener('storage', loadFavorites);
-  }, [HERMITAGE.products]);
+    const favIds = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
+    const found = favIds
+      .map((id: any) => {
+        return HERMITAGE.products.find((p: any) => String(p.id) === String(id));
+      })
+      .filter(Boolean);
+    setProducts(found);
+  }, [loaded, HERMITAGE.products]);
 
   const removeFromFavorites = (id: string) => {
     const current = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
@@ -43,6 +30,18 @@ export default function FavoritesPage() {
     localStorage.setItem('hd_favorites', JSON.stringify(updated));
     setProducts(products.filter((p) => String(p.id) !== id));
   };
+
+  if (!loaded) {
+    return (
+      <>
+        <Header />
+        <div className="container section" style={{ paddingTop: 100, textAlign: 'center' }}>
+          Загрузка...
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
