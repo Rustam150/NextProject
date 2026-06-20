@@ -5,24 +5,39 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BackButton from '../components/BackButton';
-import { getProduct, formatPrice, type Product } from '../../lib/data';
+import { formatPrice, type Product } from '../../lib/data';
 import { Store } from '../../lib/store';
+import { useStoreData } from '@/lib/use-store-data';
 
 export default function ComparePage() {
+  const { data: HERMITAGE, loaded } = useStoreData();
   const [ids, setIds] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!loaded) return;
     setIds(Store.compare());
-  }, []);
+  }, [loaded]);
 
-  const products: Product[] = ids
-    .map(getProduct)
-    .filter((p): p is Product => p !== undefined);
+  const products: any[] = ids
+    .map((id) => HERMITAGE.products.find((p: any) => String(p.id) === String(id)))
+    .filter(Boolean);
 
   const removeFromCompare = (id: string) => {
     Store.toggleCompare(id);
     setIds(Store.compare());
   };
+
+  if (!loaded) {
+    return (
+      <>
+        <Header />
+        <div className="container section" style={{ paddingTop: 100, textAlign: 'center' }}>
+          Загрузка...
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (products.length === 0) {
     return (
@@ -79,11 +94,11 @@ export default function ComparePage() {
                 <th></th>
                 {products.map((p) => (
                   <th key={p.id}>
-                    <img className="compare-product-img" src={p.image} alt={p.name} />
+                    <img className="compare-product-img" src={p.images?.[0] || p.image} alt={p.name} />
                     <Link href={`/product?id=${p.id}`}>{p.name}</Link>
                     <button
                       type="button"
-                      onClick={() => removeFromCompare(p.id)}
+                      onClick={() => removeFromCompare(String(p.id))}
                       style={{
                         display: 'block',
                         margin: '8px auto 0',

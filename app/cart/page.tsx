@@ -5,14 +5,16 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BackButton from '../components/BackButton';
-import { getProduct, formatPrice, HERMITAGE, type Product } from '../../lib/data';
+import { formatPrice, type Product } from '../../lib/data';
 import { Store } from '../../lib/store';
+import { useStoreData } from '@/lib/use-store-data';
 
 interface CartItem extends Product {
   qty: number;
 }
 
 export default function CartPage() {
+  const { data: HERMITAGE, loaded } = useStoreData();
   const [cart, setCart] = useState<Array<{ id: string; qty: number }>>([]);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -21,6 +23,7 @@ export default function CartPage() {
   });
 
   useEffect(() => {
+    if (!loaded) return;
     setCart(Store.cart());
     const user = Store.user();
     if (user) {
@@ -30,11 +33,11 @@ export default function CartPage() {
         phone: user.phone || '',
       });
     }
-  }, []);
+  }, [loaded]);
 
   const items: CartItem[] = cart
     .map((c) => {
-      const p = getProduct(c.id);
+      const p = HERMITAGE.products.find((p: any) => String(p.id) === String(c.id));
       return p ? { ...p, qty: c.qty } : null;
     })
     .filter((item): item is CartItem => item !== null);
@@ -85,6 +88,18 @@ ${lines.join('\n')}
     Store.setCart([]);
     setCart([]);
   };
+
+  if (!loaded) {
+    return (
+      <>
+        <Header />
+        <div className="container section" style={{ paddingTop: 100, textAlign: 'center' }}>
+          Загрузка...
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -143,7 +158,7 @@ ${lines.join('\n')}
               {items.map((item) => (
                 <div key={item.id} className="cart-item">
                   <Link href={`/product?id=${item.id}`} className="cart-item__img">
-                    <img src={item.image} alt={item.name} />
+                    <img src={item.images?.[0] || item.image} alt={item.name} />
                   </Link>
                   <div className="cart-item__info">
                     <h3>
@@ -154,18 +169,18 @@ ${lines.join('\n')}
                     </p>
                     <p className="product-card__price">{formatPrice(item.price)}</p>
                     <div className="qty-control">
-                      <button type="button" onClick={() => updateQty(item.id, -1)}>
+                      <button type="button" onClick={() => updateQty(String(item.id), -1)}>
                         −
                       </button>
                       <span>{item.qty}</span>
-                      <button type="button" onClick={() => updateQty(item.id, 1)}>
+                      <button type="button" onClick={() => updateQty(String(item.id), 1)}>
                         +
                       </button>
                     </div>
                     <button
                       type="button"
                       className="cart-remove"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(String(item.id))}
                     >
                       Удалить
                     </button>
