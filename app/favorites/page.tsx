@@ -7,25 +7,32 @@ import Footer from '../components/Footer';
 import BackButton from '../components/BackButton';
 import ProductCard from '../components/ProductCard';
 import { HERMITAGE } from '../../lib/data';
-import { Store } from '../../lib/store';
 
 export default function FavoritesPage() {
-  const [favIds, setFavIds] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    const ids = Store.favorites();
-    setFavIds(ids);
+    const loadFavorites = () => {
+      const favIds = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
+      const found = favIds
+        .map((id: any) => {
+          return HERMITAGE.products.find((p) => String(p.id) === String(id));
+        })
+        .filter(Boolean);
+      setProducts(found);
+    };
+
+    loadFavorites();
+    
+    window.addEventListener('storage', loadFavorites);
+    return () => window.removeEventListener('storage', loadFavorites);
   }, []);
 
-  const products = favIds
-    .map((id) => {
-      return HERMITAGE.products.find((p) => String(p.id) === String(id));
-    })
-    .filter(Boolean);
-
   const removeFromFavorites = (id: string) => {
-    Store.toggleFavorite(id);
-    setFavIds(favIds.filter((fid) => fid !== id));
+    const current = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
+    const updated = current.filter((fid: any) => String(fid) !== String(id));
+    localStorage.setItem('hd_favorites', JSON.stringify(updated));
+    setProducts(products.filter((p) => String(p.id) !== id));
   };
 
   return (
@@ -45,7 +52,7 @@ export default function FavoritesPage() {
       <div className="container section" style={{ paddingTop: 0 }}>
         {products.length > 0 ? (
           <div className="products-grid">
-            {products.map((p: any) => (
+            {products.map((p) => (
               <div key={p.id} style={{ position: 'relative' }}>
                 <ProductCard product={p} />
                 <button
