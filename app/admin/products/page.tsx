@@ -19,11 +19,11 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>
           Товары
         </h1>
-        <button style={{
+        <button className="admin-btn" style={{
           padding: '12px 24px',
           background: '#b89968',
           color: '#fff',
@@ -41,6 +41,7 @@ export default function ProductsPage() {
         placeholder="Поиск товаров..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        className="search-input"
         style={{
           width: '100%',
           padding: '12px',
@@ -48,11 +49,12 @@ export default function ProductsPage() {
           borderRadius: '4px',
           marginBottom: '24px',
           fontSize: '14px',
+          boxSizing: 'border-box',
         }}
       />
 
-      <div style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="products-table" style={{ background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
           <thead>
             <tr style={{ background: '#f9f9f9', borderBottom: '1px solid #eee' }}>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>ID</th>

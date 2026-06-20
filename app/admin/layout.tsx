@@ -7,21 +7,7 @@ import Link from 'next/link';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(false);
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     const auth = localStorage.getItem('admin_auth');
@@ -47,29 +33,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f5f0' }}>
       {/* Мобильная кнопка меню */}
-      {isMobile && (
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          style={{
-            position: 'fixed',
-            top: '16px',
-            left: '16px',
-            zIndex: 1001,
-            padding: '12px',
-            background: '#1a1a1a',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '20px',
-          }}
-        >
-          {sidebarOpen ? '×' : '☰'}
-        </button>
-      )}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="mobile-menu-btn"
+        style={{
+          position: 'fixed',
+          top: '16px',
+          left: '16px',
+          zIndex: 1001,
+          padding: '12px',
+          background: '#1a1a1a',
+          border: 'none',
+          borderRadius: '4px',
+          color: '#fff',
+          cursor: 'pointer',
+          fontSize: '20px',
+          display: 'none',
+        }}
+      >
+        {sidebarOpen ? '×' : '☰'}
+      </button>
 
       {/* Оверлей для мобильной версии */}
-      {isMobile && sidebarOpen && (
+      {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
           style={{
@@ -80,23 +66,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             bottom: 0,
             background: 'rgba(0,0,0,0.5)',
             zIndex: 999,
+            display: 'block',
           }}
         />
       )}
 
       {/* Сайдбар */}
-      <aside style={{
-        width: isMobile ? '260px' : '260px',
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`} style={{
+        width: '260px',
         background: '#1a1a1a',
         color: '#fff',
         padding: '24px 0',
         position: 'fixed',
         height: '100vh',
         overflowY: 'auto',
-        transform: isMobile && !sidebarOpen ? 'translateX(-100%)' : 'translateX(0)',
-        transition: 'transform 0.3s ease',
         zIndex: 1000,
         left: 0,
+        transition: 'transform 0.3s ease',
       }}>
         <div style={{ padding: '0 24px 24px', borderBottom: '1px solid #333' }}>
           <h2 style={{
@@ -116,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => isMobile && setSidebarOpen(false)}
+              onClick={() => setSidebarOpen(false)}
               style={{
                 display: 'block',
                 padding: '12px 24px',
@@ -159,12 +145,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Основной контент */}
-      <main style={{
-        marginLeft: isMobile ? '0' : '260px',
+      <main className="admin-content" style={{
+        marginLeft: '260px',
         flex: 1,
-        padding: isMobile ? '16px' : '32px',
-        paddingTop: isMobile ? '70px' : '32px',
+        padding: '32px',
+        paddingTop: '32px',
         width: '100%',
+        transition: 'margin-left 0.3s ease',
       }}>
         {children}
       </main>

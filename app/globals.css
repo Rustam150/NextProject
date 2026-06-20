@@ -1964,3 +1964,72 @@ body.filters-open {
     right: 16px !important;
   }
 }
+
+
+/* Админка - мобильная адаптация */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%) !important;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .admin-content {
+    margin-left: 0 !important;
+    padding: 16px !important;
+    padding-top: 70px !important;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  .products-table {
+    overflow-x: auto !important;
+  }
+
+  .products-table table {
+    min-width: 800px !important;
+  }
+
+  .admin-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .admin-header h1 {
+    font-size: 24px !important;
+  }
+
+  .admin-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .search-input {
+    width: 100% !important;
+  }
+
+  .brands-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-content {
+    padding: 12px !important;
+  }
+
+  .admin-header h1 {
+    font-size: 20px !important;
+  }
+
+  table th,
+  table td {
+    padding: 12px 8px !important;
+    font-size: 13px !important;
+  }
+}
