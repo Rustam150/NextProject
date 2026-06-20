@@ -15,6 +15,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '', price: '', category: '', brand: '', country: '',
     image: '/images/p1.jpg', inStock: true, popular: false, isNew: false, description: '',
@@ -22,21 +23,57 @@ export default function ProductsPage() {
   });
 
   useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    
+    // Пробуем загрузить из localStorage
     const saved = localStorage.getItem('products');
+    
     if (saved) {
-      setProducts(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      console.log('Loaded from localStorage:', parsed.length, 'products');
+      setProducts(parsed);
     } else {
-      import('@/lib/data').then(({ HERMITAGE }) => {
-        const productsFromData = HERMITAGE.products.map((p: any) => ({
-          ...p,
-          image: p.images?.[0] || '/images/p1.jpg',
-          brand: p.factory || '',
+      // Если нет - загружаем из lib/data.ts
+      try {
+        const dataModule = await import('@/lib/data');
+        const hermitageData = dataModule.HERMITAGE;
+        
+        console.log('Loaded from data.ts:', hermitageData.products.length, 'products');
+        
+        const productsFromData = hermitageData.products.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          category: p.category || '',
+          brand: p.factory || p.brand || '',
+          country: p.country || '',
+          image: p.images?.[0] || p.image || '/images/p1.jpg',
+          inStock: p.inStock ?? true,
+          popular: p.popular ?? false,
+          isNew: p.isNew ?? false,
+          description: p.description || '',
+          sku: p.sku || '',
+          sizes: p.sizes || '',
+          material: p.material || '',
+          color: p.color || '',
+          isSale: p.isSale ?? false,
+          images: p.images || [p.image] || ['/images/p1.jpg'],
+          factory: p.factory || p.brand || '',
         }));
+        
         setProducts(productsFromData);
         localStorage.setItem('products', JSON.stringify(productsFromData));
-      });
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
     }
-  }, []);
+    
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (products.length > 0) {
@@ -129,10 +166,14 @@ export default function ProductsPage() {
     setEditingProduct(null);
   };
 
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center' }}>Загрузка товаров...</div>;
+  }
+
   return (
     <div>
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>Товары</h1>
+        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>Товары ({products.length})</h1>
         <button onClick={handleAdd} className="admin-btn" style={{ padding: '12px 24px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Добавить товар</button>
       </div>
 
