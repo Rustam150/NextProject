@@ -110,3 +110,22 @@ export interface Product {
     { id: 'aromas', name: 'Ароматы', image: '/images/p1.jpg' },
     { id: 'textile', name: 'Текстиль', image: '/images/p1.jpg' },
   ];
+
+  export interface Brand {
+    id: number;
+    name: string;
+    country: string;
+  }
+  
+  export const mockBrands: Brand[] = [
+    { id: 1, name: 'Poliform', country: 'Италия' },
+    { id: 2, name: 'Minotti', country: 'Италия' },
+    { id: 3, name: 'Baxter', country: 'Италия' },
+    { id: 4, name: 'B&B Italia', country: 'Италия' },
+    { id: 5, name: 'Flexform', country: 'Италия' },
+    { id: 6, name: 'Porada', country: 'Италия' },
+    { id: 7, name: 'Cassina', country: 'Италия' },
+    { id: 8, name: 'Kartell', country: 'Италия' },
+    { id: 9, name: 'Foscarini', country: 'Италия' },
+    { id: 10, name: 'Lema', country: 'Италия' },
+  ];

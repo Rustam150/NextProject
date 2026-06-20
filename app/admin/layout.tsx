@@ -1,12 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const auth = localStorage.getItem('admin_auth');
@@ -24,21 +39,64 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin', label: 'Дашборд' },
     { href: '/admin/products', label: 'Товары' },
-    { href: '/admin/orders', label: 'Заказы' },
+    { href: '/admin/brands', label: 'Бренды' },
     { href: '/admin/categories', label: 'Категории' },
+    { href: '/admin/orders', label: 'Заказы' },
   ];
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f5f5f0' }}>
+      {/* Мобильная кнопка меню */}
+      {isMobile && (
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          style={{
+            position: 'fixed',
+            top: '16px',
+            left: '16px',
+            zIndex: 1001,
+            padding: '12px',
+            background: '#1a1a1a',
+            border: 'none',
+            borderRadius: '4px',
+            color: '#fff',
+            cursor: 'pointer',
+            fontSize: '20px',
+          }}
+        >
+          {sidebarOpen ? '×' : '☰'}
+        </button>
+      )}
+
+      {/* Оверлей для мобильной версии */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 999,
+          }}
+        />
+      )}
+
       {/* Сайдбар */}
       <aside style={{
-        width: '260px',
+        width: isMobile ? '260px' : '260px',
         background: '#1a1a1a',
         color: '#fff',
         padding: '24px 0',
         position: 'fixed',
         height: '100vh',
         overflowY: 'auto',
+        transform: isMobile && !sidebarOpen ? 'translateX(-100%)' : 'translateX(0)',
+        transition: 'transform 0.3s ease',
+        zIndex: 1000,
+        left: 0,
       }}>
         <div style={{ padding: '0 24px 24px', borderBottom: '1px solid #333' }}>
           <h2 style={{
@@ -58,6 +116,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => isMobile && setSidebarOpen(false)}
               style={{
                 display: 'block',
                 padding: '12px 24px',
@@ -101,9 +160,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Основной контент */}
       <main style={{
-        marginLeft: '260px',
+        marginLeft: isMobile ? '0' : '260px',
         flex: 1,
-        padding: '32px',
+        padding: isMobile ? '16px' : '32px',
+        paddingTop: isMobile ? '70px' : '32px',
+        width: '100%',
       }}>
         {children}
       </main>
