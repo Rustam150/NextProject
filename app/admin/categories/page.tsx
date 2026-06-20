@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { mockCategories, Category } from '@/lib/admin-data';
+import { Category } from '@/lib/admin-data';
+import { mockCategories } from '@/lib/admin-data';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -35,12 +36,15 @@ export default function CategoriesPage() {
     if (editingCategory) {
       const updated = categories.map(c => c.id === editingCategory.id ? { ...c, ...formData } : c);
       setCategories(updated);
+      localStorage.setItem('categories', JSON.stringify(updated));
     } else {
       const newCategory: Category = {
-        id: Math.max(...categories.map(c => c.id), 0) + 1,
+        id: Math.max(...categories.map(c => Number(c.id)), 0) + 1,
         ...formData,
       };
-      setCategories([...categories, newCategory]);
+      const updated = [...categories, newCategory];
+      setCategories(updated);
+      localStorage.setItem('categories', JSON.stringify(updated));
     }
 
     setShowModal(false);
@@ -56,7 +60,9 @@ export default function CategoriesPage() {
 
   const handleDelete = (id: number) => {
     if (confirm('Удалить категорию?')) {
-      setCategories(categories.filter(c => c.id !== id));
+      const updated = categories.filter(c => c.id !== id);
+      setCategories(updated);
+      localStorage.setItem('categories', JSON.stringify(updated));
     }
   };
 
@@ -150,7 +156,6 @@ export default function CategoriesPage() {
         </table>
       </div>
 
-      {/* Модальное окно */}
       {showModal && (
         <div style={{
           position: 'fixed',

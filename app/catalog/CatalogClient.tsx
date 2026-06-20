@@ -9,7 +9,7 @@ import BackButton from '../components/BackButton';
 import { useStoreData } from '@/lib/use-store-data';
 
 export default function CatalogClient() {
-  const { data: HERMITAGE, loaded } = useStoreData();
+  const { data: HERMITAGE_DATA, loaded } = useStoreData();
   const searchParams = useSearchParams();
   const category = searchParams.get('category') || '';
   const newOnly = searchParams.get('new') === '1';
@@ -39,7 +39,7 @@ export default function CatalogClient() {
 
   if (!loaded) return null;
 
-  const filteredProducts = HERMITAGE.products.filter((p: any) => {
+  const filteredProducts = HERMITAGE_DATA.products.filter((p: any) => {
     if (category && p.category !== category) return false;
     if (newOnly && !p.isNew) return false;
     if (saleOnly && !p.isSale) return false;
@@ -67,13 +67,13 @@ export default function CatalogClient() {
     return (b.popular ? 1 : 0) - (a.popular ? 1 : 0);
   });
 
-  const countries = [...new Set(HERMITAGE.products.map((p: any) => p.country))];
-  const factories = [...new Set(HERMITAGE.products.map((p: any) => p.factory))];
-  const colors = [...new Set(HERMITAGE.products.map((p: any) => p.color))];
-  const materials = [...new Set(HERMITAGE.products.map((p: any) => p.material.split(',')[0].trim()))];
+  const countries = [...new Set(HERMITAGE_DATA.products.map((p: any) => p.country))];
+  const factories = [...new Set(HERMITAGE_DATA.products.map((p: any) => p.factory))];
+  const colors = [...new Set(HERMITAGE_DATA.products.map((p: any) => p.color))];
+  const materials = [...new Set(HERMITAGE_DATA.products.map((p: any) => p.material.split(',')[0].trim()))];
 
   const pageTitle = category
-    ? HERMITAGE.categories.find((c: any) => c.id === category)?.name || 'Каталог'
+    ? HERMITAGE_DATA.categories.find((c: any) => c.id === category)?.name || 'Каталог'
     : newOnly
       ? 'Новинки'
       : saleOnly
@@ -170,7 +170,7 @@ export default function CatalogClient() {
             <p className="catalog-categories__label">Комнаты</p>
             <div className="catalog-categories__scroll">
               <a href="/catalog" className={`catalog-chip ${!category ? 'is-active' : ''}`}>Все</a>
-              {HERMITAGE.categories.map((c: any) => (
+              {HERMITAGE_DATA.categories.map((c: any) => (
                 <a key={c.id} href={`/catalog?category=${c.id}`} className={`catalog-chip ${category === c.id ? 'is-active' : ''}`}>{c.name}</a>
               ))}
             </div>
@@ -231,7 +231,7 @@ export default function CatalogClient() {
           <a href="/catalog" className={`categories-panel__item ${!category ? 'active' : ''}`} onClick={() => setCategoriesPanelOpen(false)}>
             <span className="categories-panel__item-name">Все</span>
           </a>
-          {HERMITAGE.categories.map((c: any) => (
+          {HERMITAGE_DATA.categories.map((c: any) => (
             <a key={c.id} href={`/catalog?category=${c.id}`} className={`categories-panel__item ${category === c.id ? 'active' : ''}`} onClick={() => setCategoriesPanelOpen(false)}>
               <span className="categories-panel__item-name">{c.name}</span>
             </a>

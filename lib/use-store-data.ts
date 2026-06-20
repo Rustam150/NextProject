@@ -9,6 +9,7 @@ export function useStoreData() {
 
   useEffect(() => {
     const savedProducts = localStorage.getItem('products');
+    const savedCategories = localStorage.getItem('categories');
 
     const newData = { ...HERMITAGE };
 
@@ -27,6 +28,19 @@ export function useStoreData() {
         }));
       } catch (e) {
         console.error('Error parsing products from localStorage', e);
+      }
+    }
+
+    if (savedCategories) {
+      try {
+        const customCategories = JSON.parse(savedCategories);
+        newData.categories = customCategories.map((c: any) => ({
+          id: String(c.id),
+          name: c.name,
+          image: c.image || '/images/p1.jpg',
+        }));
+      } catch (e) {
+        console.error('Error parsing categories from localStorage', e);
       }
     }
 
