@@ -13,12 +13,21 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     const loadFavorites = () => {
+      console.log('HERMITAGE.products:', HERMITAGE.products);
+      console.log('HERMITAGE.products.length:', HERMITAGE.products.length);
+      
       const favIds = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
+      console.log('favIds:', favIds);
+      
       const found = favIds
         .map((id: any) => {
-          return HERMITAGE.products.find((p) => String(p.id) === String(id));
+          const product = HERMITAGE.products.find((p) => String(p.id) === String(id));
+          console.log('Looking for ID:', id, 'Found:', product);
+          return product;
         })
         .filter(Boolean);
+        
+      console.log('Found products:', found);
       setProducts(found);
     };
 
@@ -26,7 +35,7 @@ export default function FavoritesPage() {
     
     window.addEventListener('storage', loadFavorites);
     return () => window.removeEventListener('storage', loadFavorites);
-  }, []);
+  }, [HERMITAGE.products]);
 
   const removeFromFavorites = (id: string) => {
     const current = JSON.parse(localStorage.getItem('hd_favorites') || '[]');
