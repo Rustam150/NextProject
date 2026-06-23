@@ -46,7 +46,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '', price: '', category: '', brand: '', country: '',
-    images: ['/images/p1.jpg'], inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
+    images: ['/images/p1.jpg'], inStockStatus: 'in_stock', stockQuantity: '',
+    popular: false, isNew: false, description: '',
     sku: '', sizes: '', material: '', color: '', isSale: false,
     customColor: '',
     customMaterial: '',
@@ -133,7 +134,8 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData({
       name: '', price: '', category: '', brand: '', country: '',
-      images: ['/images/p1.jpg'], inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
+      images: ['/images/p1.jpg'], inStockStatus: 'in_stock', stockQuantity: '',
+      popular: false, isNew: false, description: '',
       sku: '', sizes: '', material: '', color: '', isSale: false,
       customColor: '',
       customMaterial: '',
@@ -152,6 +154,7 @@ export default function ProductsPage() {
       country: product.country,
       images: product.images || ['/images/p1.jpg'],
       inStockStatus: product.inStock === 'both' ? 'both' : (product.inStock ? 'in_stock' : 'made_to_order'),
+      stockQuantity: String(product.stockQuantity || ''),
       popular: product.popular || false,
       isNew: product.isNew || false,
       description: product.description || '',
@@ -225,6 +228,7 @@ export default function ProductsPage() {
             color: finalColor,
             material: finalMaterial,
             country: finalCountry,
+            stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
           };
         }
         return p;
@@ -245,6 +249,7 @@ export default function ProductsPage() {
         color: finalColor,
         country: finalCountry,
         inStock: inStockValue,
+        stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
       };
       const updated = [...products, newProduct];
       setProducts(updated);
@@ -277,7 +282,7 @@ export default function ProductsPage() {
         <table style={{ 
           width: '100%', 
           borderCollapse: 'collapse',
-          minWidth: '900px',
+          minWidth: '1000px',
         }}>
           <thead>
             <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #eee' }}>
@@ -285,8 +290,9 @@ export default function ProductsPage() {
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, minWidth: '200px' }}>Название</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Категория</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Цена</th>
+              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Остаток</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Популярный</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Статус</th>
+              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Статус</th>
               <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '200px' }}>Действия</th>
             </tr>
           </thead>
@@ -297,6 +303,15 @@ export default function ProductsPage() {
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</td>
                 <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{categories.find(c => c.id === product.category)?.name || product.category}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.price.toLocaleString()} ₽</td>
+                <td style={{ padding: '16px', fontSize: '14px' }}>
+                  {product.stockQuantity != null ? (
+                    <span style={{ padding: '4px 8px', background: product.stockQuantity > 5 ? '#e8f5e9' : (product.stockQuantity > 0 ? '#fff3e0' : '#ffebee'), color: product.stockQuantity > 5 ? '#2e7d32' : (product.stockQuantity > 0 ? '#e65100' : '#c62828'), borderRadius: '12px', fontSize: '12px' }}>
+                      {product.stockQuantity} шт.
+                    </span>
+                  ) : (
+                    <span style={{ color: '#999', fontSize: '12px' }}>—</span>
+                  )}
+                </td>
                 <td style={{ padding: '16px' }}>
                   {product.popular ? (
                     <span style={{ padding: '4px 12px', background: '#fff3e0', color: '#e65100', borderRadius: '12px', fontSize: '12px' }}>✓</span>
@@ -442,6 +457,20 @@ export default function ProductsPage() {
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Количество на складе</label>
+              <input
+                type="number"
+                value={formData.stockQuantity}
+                onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+                placeholder="Оставьте пустым если не ограничено"
+                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+              />
+              <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                Например: 1, 5, 10. Оставьте пустым если много
+              </p>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
