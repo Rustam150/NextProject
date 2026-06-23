@@ -39,13 +39,14 @@ const MATERIAL_OPTIONS = [
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '', price: '', category: '', brand: '', country: '',
-    image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
+    images: ['/images/p1.jpg'], inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
     sku: '', sizes: '', material: '', color: '', isSale: false,
     customColor: '',
     customMaterial: '',
@@ -54,6 +55,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   const loadProducts = async () => {
@@ -63,14 +65,11 @@ export default function ProductsPage() {
     
     if (saved) {
       const parsed = JSON.parse(saved);
-      console.log('Loaded from localStorage:', parsed.length, 'products');
       setProducts(parsed);
     } else {
       try {
         const dataModule = await import('@/lib/data');
         const hermitageData = dataModule.HERMITAGE;
-        
-        console.log('Loaded from data.ts:', hermitageData.products.length, 'products');
         
         const productsFromData = hermitageData.products.map((p: any) => ({
           id: p.id,
@@ -79,7 +78,7 @@ export default function ProductsPage() {
           category: p.category || '',
           brand: p.factory || p.brand || '',
           country: p.country || '',
-          image: p.images?.[0] || p.image || '/images/p1.jpg',
+          images: p.images || [p.image] || ['/images/p1.jpg'],
           inStock: p.inStock ?? true,
           popular: p.popular ?? false,
           isNew: p.isNew ?? false,
@@ -89,7 +88,6 @@ export default function ProductsPage() {
           material: p.material || '',
           color: p.color || '',
           isSale: p.isSale ?? false,
-          images: p.images || [p.image] || ['/images/p1.jpg'],
           factory: p.factory || p.brand || '',
         }));
         
@@ -101,6 +99,16 @@ export default function ProductsPage() {
     }
     
     setLoading(false);
+  };
+
+  const loadCategories = () => {
+    const saved = localStorage.getItem('categories');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setCategories(parsed);
+    } else {
+      setCategories(CATEGORIES);
+    }
   };
 
   useEffect(() => {
@@ -125,7 +133,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setFormData({
       name: '', price: '', category: '', brand: '', country: '',
-      image: '/images/p1.jpg', inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
+      images: ['/images/p1.jpg'], inStockStatus: 'in_stock', popular: false, isNew: false, description: '',
       sku: '', sizes: '', material: '', color: '', isSale: false,
       customColor: '',
       customMaterial: '',
@@ -142,7 +150,7 @@ export default function ProductsPage() {
       category: product.category,
       brand: product.brand || product.factory || '',
       country: product.country,
-      image: product.images?.[0] || product.image || '/images/p1.jpg',
+      images: product.images || ['/images/p1.jpg'],
       inStockStatus: product.inStock === 'both' ? 'both' : (product.inStock ? 'in_stock' : 'made_to_order'),
       popular: product.popular || false,
       isNew: product.isNew || false,
@@ -160,14 +168,32 @@ export default function ProductsPage() {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newImages: string[] = [];
+      let loadedCount = 0;
+
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push(reader.result as string);
+          loadedCount++;
+          if (loadedCount === files.length) {
+            if (e.target.multiple) {
+              setFormData({ ...formData, images: [...formData.images, ...newImages] });
+            } else {
+              setFormData({ ...formData, images: newImages });
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = formData.images.filter((_, i) => i !== index);
+    setFormData({ ...formData, images: newImages.length > 0 ? newImages : ['/images/p1.jpg'] });
   };
 
   const handleSave = () => {
@@ -194,7 +220,7 @@ export default function ProductsPage() {
             price,
             id: editingProduct.id,
             factory: formData.brand,
-            images: [formData.image],
+            images: formData.images,
             inStock: inStockValue,
             color: finalColor,
             material: finalMaterial,
@@ -211,7 +237,7 @@ export default function ProductsPage() {
         id: Math.max(...products.map(p => p.id), 0) + 1,
         price,
         factory: formData.brand,
-        images: [formData.image],
+        images: formData.images,
         isSale: formData.isSale,
         sku: formData.sku || `SKU-${Date.now()}`,
         sizes: formData.sizes,
@@ -259,6 +285,7 @@ export default function ProductsPage() {
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, minWidth: '200px' }}>Название</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Категория</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Цена</th>
+              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Популярный</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Статус</th>
               <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '200px' }}>Действия</th>
             </tr>
@@ -268,8 +295,15 @@ export default function ProductsPage() {
               <tr key={product.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '16px', fontSize: '14px' }}>{product.id}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</td>
-                <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{CATEGORIES.find(c => c.id === product.category)?.name || product.category}</td>
+                <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{categories.find(c => c.id === product.category)?.name || product.category}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.price.toLocaleString()} ₽</td>
+                <td style={{ padding: '16px' }}>
+                  {product.popular ? (
+                    <span style={{ padding: '4px 12px', background: '#fff3e0', color: '#e65100', borderRadius: '12px', fontSize: '12px' }}>✓</span>
+                  ) : (
+                    <span style={{ padding: '4px 12px', background: '#f5f5f5', color: '#999', borderRadius: '12px', fontSize: '12px' }}>—</span>
+                  )}
+                </td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 12px', background: product.inStock === 'both' ? '#fff3e0' : (product.inStock ? '#e8f5e9' : '#ffebee'), color: product.inStock === 'both' ? '#e65100' : (product.inStock ? '#2e7d32' : '#c62828'), borderRadius: '12px', fontSize: '12px', display: 'inline-block' }}>
                     {product.inStock === 'both' ? 'Оба варианта' : (product.inStock ? 'В наличии' : 'Под заказ')}
@@ -302,17 +336,47 @@ export default function ProductsPage() {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Фото товара</label>
-              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
-              {formData.image && (
-                <img src={formData.image} alt="Preview" style={{ marginTop: '12px', maxWidth: '200px', borderRadius: '4px' }} />
-              )}
+              <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+              <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Можно выбрать несколько фото (до 10)</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+                {formData.images.map((img, index) => (
+                  <div key={index} style={{ position: 'relative' }}>
+                    <img src={img} alt={`Preview ${index}`} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                    {formData.images.length > 1 && (
+                      <button
+                        onClick={() => removeImage(index)}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: 'rgba(0,0,0,0.7)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '24px',
+                          height: '24px',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Категория</label>
               <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите категорию</option>
-                {CATEGORIES.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
 
@@ -388,7 +452,7 @@ export default function ProductsPage() {
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
                 <input type="checkbox" checked={formData.popular} onChange={(e) => setFormData({ ...formData, popular: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                Популярный
+                Популярный товар
               </label>
             </div>
 
