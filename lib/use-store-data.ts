@@ -27,7 +27,7 @@ export function useStoreData() {
           color: p.color || '',
         }));
       } catch (e) {
-        console.error('Error parsing products from localStorage', e);
+        console.error('Error parsing products', e);
       }
     }
 
@@ -40,7 +40,7 @@ export function useStoreData() {
           image: c.image || '/images/p1.jpg',
         }));
       } catch (e) {
-        console.error('Error parsing categories from localStorage', e);
+        console.error('Error parsing categories', e);
       }
     }
 

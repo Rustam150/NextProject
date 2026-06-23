@@ -41,21 +41,18 @@ export default function CatalogClient() {
 
   const filteredProducts = HERMITAGE_DATA.products.filter((p: any) => {
     if (category) {
-  // Ищем категорию по ID
-  const categoryObj = HERMITAGE_DATA.categories.find((c: any) => c.id === category);
-  const categoryName = categoryObj?.name || category;
-  
-  // Проверяем и по ID, и по названию
-  if (p.category !== category && p.category !== categoryName) return false;
-}
+      const categoryObj = HERMITAGE_DATA.categories.find((c: any) => c.id === category);
+      const categoryName = categoryObj?.name;
+      if (p.category !== category && p.category !== categoryName) return false;
+    }
     if (newOnly && !p.isNew) return false;
     if (saleOnly && !p.isSale) return false;
     if (filters.country && p.country !== filters.country) return false;
     if (filters.factory && p.factory !== filters.factory) return false;
     if (filters.color && p.color !== filters.color) return false;
     if (filters.material && !p.material.includes(filters.material)) return false;
-    if (filters.inStock === 'yes' && !p.inStock) return false;
-    if (filters.inStock === 'no' && p.inStock) return false;
+    if (filters.inStock === 'yes' && p.inStock !== true && p.inStock !== 'both') return false;
+    if (filters.inStock === 'no' && p.inStock !== false && p.inStock !== 'both') return false;
     if (filters.minPrice && p.price < Number(filters.minPrice)) return false;
     if (filters.maxPrice && p.price > Number(filters.maxPrice)) return false;
     if (search) {
@@ -105,20 +102,8 @@ export default function CatalogClient() {
 
       <div className="container catalog-layout">
         <aside className={`filters-panel ${filtersOpen ? 'is-open' : ''}`}>
-          <button
-            type="button"
-            className="filters-panel__close"
-            onClick={() => setFiltersOpen(false)}
-            aria-label="Закрыть"
-          >
-            ×
-          </button>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setFiltersOpen(false);
-            }}
-          >
+          <button type="button" className="filters-panel__close" onClick={() => setFiltersOpen(false)} aria-label="Закрыть">×</button>
+          <form onSubmit={(e) => { e.preventDefault(); setFiltersOpen(false); }}>
             <div className="filter-group">
               <label>Цена от</label>
               <input type="number" placeholder="0" min="0" step="1000" value={filters.minPrice} onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })} />
@@ -207,32 +192,7 @@ export default function CatalogClient() {
       </div>
 
       <div className={`categories-panel ${categoriesPanelOpen ? 'open' : ''}`}>
-        <button
-          type="button"
-          onClick={() => setCategoriesPanelOpen(false)}
-          aria-label="Закрыть"
-          style={{
-            position: 'relative',
-            top: '50px',
-            right: '16px',
-            width: '32px',
-            height: '32px',
-            background: '#fff',
-            border: '1px solid #ddd',
-            borderRadius: '50%',
-            fontSize: '20px',
-            lineHeight: '1',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            padding: 0,
-          }}
-        >
-          ×
-        </button>
+        <button type="button" onClick={() => setCategoriesPanelOpen(false)} aria-label="Закрыть" style={{ position: 'relative', top: '50px', right: '16px', width: '32px', height: '32px', background: '#fff', border: '1px solid #ddd', borderRadius: '50%', fontSize: '20px', lineHeight: '1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: 0 }}>×</button>
         <h2 className="categories-panel__title">Комнаты</h2>
         <div className="categories-panel__grid">
           <a href="/catalog" className={`categories-panel__item ${!category ? 'active' : ''}`} onClick={() => setCategoriesPanelOpen(false)}>
