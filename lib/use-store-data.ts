@@ -3,6 +3,21 @@
 import { useEffect, useState } from 'react';
 import { HERMITAGE } from './data';
 
+// Маппинг названий категорий на оригинальные строковые id из data.ts
+const CATEGORY_NAME_TO_ID: Record<string, string> = {
+  'Спальня': 'bedroom',
+  'Гостиная': 'living',
+  'Столовая': 'dining',
+  'Кабинет': 'office',
+  'Кухня': 'kitchen',
+  'Прихожая': 'hallway',
+  'Детская': 'kids',
+  'Мягкая мебель': 'soft',
+  'Посуда': 'dishes',
+  'Ароматы': 'aromas',
+  'Текстиль': 'textile',
+};
+
 export function useStoreData() {
   const [data, setData] = useState(HERMITAGE);
   const [loaded, setLoaded] = useState(false);
@@ -34,11 +49,15 @@ export function useStoreData() {
     if (savedCategories) {
       try {
         const customCategories = JSON.parse(savedCategories);
-        newData.categories = customCategories.map((c: any) => ({
-          id: String(c.id),
-          name: c.name,
-          image: c.image || '/images/p1.jpg',
-        }));
+        newData.categories = customCategories.map((c: any) => {
+          // Если id числовой - пытаемся найти оригинальный строковый id по имени
+          const stringId = CATEGORY_NAME_TO_ID[c.name];
+          return {
+            id: stringId || String(c.id),
+            name: c.name,
+            image: c.image || '/images/p1.jpg',
+          };
+        });
       } catch (e) {
         console.error('Error parsing categories', e);
       }
