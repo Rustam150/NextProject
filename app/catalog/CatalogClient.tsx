@@ -40,7 +40,14 @@ export default function CatalogClient() {
   if (!loaded) return null;
 
   const filteredProducts = HERMITAGE_DATA.products.filter((p: any) => {
-    if (category && p.category !== category) return false;
+    if (category) {
+  // Ищем категорию по ID
+  const categoryObj = HERMITAGE_DATA.categories.find((c: any) => c.id === category);
+  const categoryName = categoryObj?.name || category;
+  
+  // Проверяем и по ID, и по названию
+  if (p.category !== category && p.category !== categoryName) return false;
+}
     if (newOnly && !p.isNew) return false;
     if (saleOnly && !p.isSale) return false;
     if (filters.country && p.country !== filters.country) return false;
