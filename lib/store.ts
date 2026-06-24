@@ -24,14 +24,40 @@ interface User {
   phone: string;
 }
 
+interface OrderItem {
+  id: string;
+  name: string;
+  image?: string;
+  sku?: string;
+  qty: number;
+  price?: number;
+}
+
 interface Order {
   id: number;
   date: string;
+
+  status:
+    | 'new'
+    | 'processing'
+    | 'approved'
+    | 'paid'
+    | 'delivery'
+    | 'completed'
+    | 'cancelled';
+
   firstName: string;
   lastName: string;
   phone: string;
+  email?: string;
+
+  deliveryType?: 'pickup' | 'delivery';
+  address?: string;
+
   comment?: string;
-  items: Array<{ name: string; qty: number; price?: number }>;
+  managerComment?: string;
+
+  items: OrderItem[];
 }
 
 export const Store = {
@@ -50,7 +76,12 @@ export const Store = {
   orders: (): Order[] => Storage.get<Order[]>('hd_orders', []),
   addOrder: (order: Omit<Order, 'id' | 'date'>) => {
     const list = Store.orders();
-    list.unshift({ ...order, id: Date.now(), date: new Date().toISOString() });
+    list.unshift({
+      ...order,
+      id: Date.now(),
+      date: new Date().toISOString(),
+      status: 'new'
+    });
     Storage.set('hd_orders', list);
   },
   compare: (): string[] => Storage.get<string[]>('hd_compare', []),

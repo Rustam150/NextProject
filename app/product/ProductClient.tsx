@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../components/Header';
@@ -21,6 +21,9 @@ export default function ProductPage() {
   const [isFav, setIsFav] = useState(false);
   const [isInCompare, setIsInCompare] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const thumbsRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('desc');
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -96,7 +99,16 @@ export default function ProductPage() {
       firstName: orderForm.firstName || currentUser.firstName,
       lastName: orderForm.lastName || currentUser.lastName,
       phone: orderForm.phone || currentUser.phone,
-      items: [{ name: product.name, qty: 1, price: product.price }],
+    
+      status: 'new',
+    
+      items: [{
+        id: String(product.id),
+        name: product.name,
+        qty: 1,
+        price: product.price
+      }],
+    
       comment: orderForm.comment,
     });
 
@@ -185,27 +197,86 @@ export default function ProductPage() {
 
       <div className="product-layout container" style={{ paddingTop: 0, paddingBottom: 32 }}>
         <div className="product-gallery">
-          <div className="product-gallery__main">
-            <img
-              id="main-image"
-              src={product.images?.[activeImage] || product.image}
-              alt={product.name}
-            />
-          </div>
+        <div
+  className="product-gallery__main"
+  onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+  onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+  onTouchEnd={() => {
+    if (!product.images || product.images.length < 2) return;
+
+    if (touchStart === null || touchEnd === null) return;
+
+    const distance = touchStart - touchEnd;
+
+    if (distance > 50) {
+      setActiveImage((prev) =>
+        prev === product.images.length - 1 ? 0 : prev + 1
+      );
+    }
+
+    if (distance < -50) {
+      setActiveImage((prev) =>
+        prev === 0 ? product.images.length - 1 : prev - 1
+      );
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  }}
+>
+  <img
+    id="main-image"
+    src={product.images?.[activeImage] || product.image}
+    alt={product.name}
+  />
+</div>
           {product.images && product.images.length > 1 && (
-            <div className="product-gallery__thumbs">
-              {product.images.map((img: any, i: number) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={i === activeImage ? 'is-active' : ''}
-                  onClick={() => setActiveImage(i)}
-                >
-                  <img src={img} alt="" />
-                </button>
-              ))}
-            </div>
-          )}
+  <div className="gallery-thumbs-wrapper">
+
+    <button
+      type="button"
+      className="gallery-arrow gallery-arrow-left"
+      onClick={() =>
+        thumbsRef.current?.scrollBy({
+          left: -300,
+          behavior: 'smooth'
+        })
+      }
+    >
+      ‹
+    </button>
+
+    <div
+      ref={thumbsRef}
+      className="product-gallery__thumbs"
+    >
+      {product.images.map((img: any, i: number) => (
+        <button
+          key={i}
+          type="button"
+          className={i === activeImage ? 'is-active' : ''}
+          onClick={() => setActiveImage(i)}
+        >
+          <img src={img} alt="" />
+        </button>
+      ))}
+    </div>
+
+    <button
+      type="button"
+      className="gallery-arrow gallery-arrow-right"
+      onClick={() =>
+        thumbsRef.current?.scrollBy({
+          left: 300,
+          behavior: 'smooth'
+        })
+      }
+    >
+      ›
+    </button>
+
+  </div>
+)}
         </div>
 
         <div className="product-info">

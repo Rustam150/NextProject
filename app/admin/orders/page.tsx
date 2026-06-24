@@ -3,13 +3,40 @@
 import { useEffect, useState } from 'react';
 import { Store } from '@/lib/store';
 
+interface OrderItem {
+  id: string;
+  name: string;
+  image?: string;
+  sku?: string;
+  qty: number;
+  price?: number;
+}
+
 interface Order {
   id: number;
   date: string;
+
+  status:
+    | 'new'
+    | 'processing'
+    | 'approved'
+    | 'paid'
+    | 'delivery'
+    | 'completed'
+    | 'cancelled';
+
   firstName: string;
   lastName: string;
   phone: string;
-  items: Array<{ name: string; qty: number; price?: number }>;
+
+  email?: string;
+  address?: string;
+  deliveryType?: 'pickup' | 'delivery';
+
+  comment?: string;
+  managerComment?: string;
+
+  items: OrderItem[];
 }
 
 export default function OrdersPage() {
@@ -30,11 +57,42 @@ export default function OrdersPage() {
     }
   };
 
+  const updateOrder = (id: number, patch: Partial<Order>) => {
+    const updated = orders.map(order =>
+      order.id === id
+        ? { ...order, ...patch }
+        : order
+    );
+  
+    setOrders(updated);
+    localStorage.setItem('hd_orders', JSON.stringify(updated));
+  };
+
   const clearAll = () => {
     if (confirm('Удалить все заказы?')) {
       setOrders([]);
       localStorage.setItem('hd_orders', '[]');
     }
+  };
+
+  const statusLabels = {
+    new: 'Новый',
+    processing: 'В обработке',
+    approved: 'Согласован',
+    paid: 'Оплачен',
+    delivery: 'В доставке',
+    completed: 'Завершён',
+    cancelled: 'Отменён',
+  };
+  
+  const statusColors = {
+    new: '#1976d2',
+    processing: '#f57c00',
+    approved: '#7b1fa2',
+    paid: '#2e7d32',
+    delivery: '#00838f',
+    completed: '#388e3c',
+    cancelled: '#c62828',
   };
 
   return (
@@ -86,6 +144,68 @@ export default function OrdersPage() {
                 </div>
               )}
 
+{order.comment && (
+  <div
+    style={{
+      marginBottom: '16px',
+      padding: '12px',
+      background: '#fff8e1',
+      borderRadius: '8px',
+      border: '1px solid #ffe082'
+    }}
+  >
+    <strong>Комментарий клиента:</strong>
+
+    <div style={{ marginTop: '6px' }}>
+      {order.comment}
+    </div>
+  </div>
+)}
+
+<div
+  style={{
+    marginBottom: '16px',
+    padding: '12px',
+    background: '#fafafa',
+    borderRadius: '8px',
+    border: '1px solid #eee'
+  }}
+>
+  <p
+    style={{
+      margin: '0 0 8px 0',
+      fontSize: '13px',
+      color: '#666',
+      textTransform: 'uppercase'
+    }}
+  >
+    Статус заказа
+  </p>
+
+  <select
+    value={order.status}
+    onChange={(e) =>
+      updateOrder(order.id, {
+        status: e.target.value as Order['status']
+      })
+    }
+    style={{
+      width: '100%',
+      padding: '10px',
+      borderRadius: '6px',
+      border: '1px solid #ddd'
+    }}
+  >
+    <option value="new">Новый</option>
+    <option value="processing">В обработке</option>
+    <option value="approved">Согласован</option>
+    <option value="paid">Оплачен</option>
+    <option value="delivery">В доставке</option>
+    <option value="completed">Завершён</option>
+    <option value="cancelled">Отменён</option>
+  </select>
+</div>
+
               <div>
                 <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#666', textTransform: 'uppercase' }}>Товары:</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -97,6 +217,8 @@ export default function OrdersPage() {
                   ))}
                 </div>
               </div>
+
+              
 
               {order.items.some(i => i.price) && (
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #eee', textAlign: 'right', fontSize: '16px', fontWeight: 600 }}>

@@ -177,19 +177,51 @@ export default function ProductsPage() {
       let loadedCount = 0;
 
       Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newImages.push(reader.result as string);
+        const canvas = document.createElement('canvas');
+        const img = new Image();
+      
+        img.onload = () => {
+          const MAX_WIDTH = 800;
+      
+          let width = img.width;
+          let height = img.height;
+      
+          if (width > MAX_WIDTH) {
+            height = (height * MAX_WIDTH) / width;
+            width = MAX_WIDTH;
+          }
+      
+          canvas.width = width;
+          canvas.height = height;
+      
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+      
+          const compressedImage = canvas.toDataURL(
+            'image/jpeg',
+            0.6
+          );
+      
+          newImages.push(compressedImage);
+      
           loadedCount++;
+      
           if (loadedCount === files.length) {
             if (e.target.multiple) {
-              setFormData({ ...formData, images: [...formData.images, ...newImages] });
+              setFormData({
+                ...formData,
+                images: [...formData.images, ...newImages],
+              });
             } else {
-              setFormData({ ...formData, images: newImages });
+              setFormData({
+                ...formData,
+                images: newImages,
+              });
             }
           }
         };
-        reader.readAsDataURL(file);
+      
+        img.src = URL.createObjectURL(file);
       });
     }
   };
