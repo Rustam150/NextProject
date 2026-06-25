@@ -74,13 +74,12 @@ export default function CartPage() {
 
   const submitOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    const orderItems = items.map((i) => ({ name: i.name, qty: i.qty }));
-    Store.addOrder({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      phone: formData.phone,
-      items: orderItems,
-    });
+    const orderItems = items.map((i) => ({
+  id: String(i.id),
+  name: i.name,
+  qty: i.qty,
+  price: i.price,
+}));
 
     const lines = orderItems.map((p) => `- ${p.name}${p.qty > 1 ? ` (×${p.qty})` : ''}`);
     const text = `Здравствуйте.
