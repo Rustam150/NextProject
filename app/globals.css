@@ -363,7 +363,7 @@ body.search-open .site-header--hero .site-nav a {
 
   /* КРЕСТИК ЗАКРЫТИЯ МЕНЮ */
   .nav-close {
-    display: flex !important;
+    display: none;
     position: absolute;
     top: 20px;
     right: 20px;
@@ -380,6 +380,9 @@ body.search-open .site-header--hero .site-nav a {
     justify-content: center;
     transition: all 0.2s ease;
   }
+  .nav-close {
+  display: flex !important;
+}
 
   .nav-close:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -2119,5 +2122,10 @@ body.filters-open {
 @media (max-width: 768px) {
   .gallery-arrow {
     display: none;
+  }
+}
+@media (min-width: 1025px) {
+  .nav-close {
+    display: none !important;
   }
 }

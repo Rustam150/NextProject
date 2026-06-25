@@ -41,7 +41,8 @@ interface Order {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-
+  const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
+  const [search, setSearch] = useState('');
   useEffect(() => {
     const saved = localStorage.getItem('hd_orders');
     if (saved) {
@@ -95,6 +96,31 @@ export default function OrdersPage() {
     cancelled: '#c62828',
   };
 
+const newCount = orders.filter(o => o.status === 'new').length;
+const processingCount = orders.filter(o => o.status === 'processing').length;
+const approvedCount = orders.filter(o => o.status === 'approved').length;
+const paidCount = orders.filter(o => o.status === 'paid').length;
+const deliveryCount = orders.filter(o => o.status === 'delivery').length;
+const completedCount = orders.filter(o => o.status === 'completed').length;
+const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
+
+  const filteredOrders = orders.filter((order) => {
+  const matchesStatus =
+    filterStatus === 'all'
+      ? true
+      : order.status === filterStatus;
+
+  const searchText = search.toLowerCase();
+
+  const matchesSearch =
+    `${order.firstName} ${order.lastName}`
+      .toLowerCase()
+      .includes(searchText) ||
+    order.phone.toLowerCase().includes(searchText);
+
+  return matchesStatus && matchesSearch;
+});
+
   return (
     <div>
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
@@ -106,23 +132,206 @@ export default function OrdersPage() {
         )}
       </div>
 
+      <input
+  type="text"
+  placeholder="Поиск по имени или телефону..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  style={{
+    width: '100%',
+    padding: '12px',
+    marginBottom: '16px',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    fontSize: '14px',
+  }}
+/>
+
+      <div
+  style={{
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    marginBottom: '24px',
+  }}
+>
+  <button
+    onClick={() => setFilterStatus('all')}
+    style={{
+      padding: '8px 14px',
+      borderRadius: '20px',
+      border: 'none',
+      cursor: 'pointer',
+      background: filterStatus === 'all' ? '#111' : '#eee',
+      color: filterStatus === 'all' ? '#fff' : '#111',
+    }}
+  >
+    Все ({orders.length})
+  </button>
+
+  <button
+    onClick={() => setFilterStatus('new')}
+    style={{
+      padding: '8px 14px',
+      borderRadius: '20px',
+      border: 'none',
+      cursor: 'pointer',
+      background: filterStatus === 'new' ? '#1976d2' : '#eee',
+      color: filterStatus === 'new' ? '#fff' : '#111',
+    }}
+  >
+    Новые ({newCount})
+  </button>
+
+  <button
+    onClick={() => setFilterStatus('processing')}
+    style={{
+      padding: '8px 14px',
+      borderRadius: '20px',
+      border: 'none',
+      cursor: 'pointer',
+      background: filterStatus === 'processing' ? '#f57c00' : '#eee',
+      color: filterStatus === 'processing' ? '#fff' : '#111',
+    }}
+  >
+    В обработке ({processingCount})
+  </button>
+
+  <button
+    onClick={() => setFilterStatus('delivery')}
+    style={{
+      padding: '8px 14px',
+      borderRadius: '20px',
+      border: 'none',
+      cursor: 'pointer',
+      background: filterStatus === 'delivery' ? '#00838f' : '#eee',
+      color: filterStatus === 'delivery' ? '#fff' : '#111',
+    }}
+  >
+    В доставке ({deliveryCount})
+  </button>
+
+  <button
+    onClick={() => setFilterStatus('completed')}
+    style={{
+      padding: '8px 14px',
+      borderRadius: '20px',
+      border: 'none',
+      cursor: 'pointer',
+      background: filterStatus === 'completed' ? '#388e3c' : '#eee',
+      color: filterStatus === 'completed' ? '#fff' : '#111',
+    }}
+  >
+    Завершённые ({completedCount})
+  </button>
+
+    <button
+  onClick={() => setFilterStatus('cancelled')}
+  style={{
+    padding: '8px 14px',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    background:
+      filterStatus === 'cancelled'
+        ? '#111'
+        : '#eee',
+    color:
+      filterStatus === 'cancelled'
+        ? '#fff'
+        : '#111'
+  }}
+>
+  Отменённые ({cancelledCount})
+</button>
+
+<button
+  onClick={() => setFilterStatus('approved')}
+  style={{
+    padding: '8px 14px',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    background:
+      filterStatus === 'approved' ? '#111' : '#eee',
+    color:
+      filterStatus === 'approved' ? '#fff' : '#111'
+  }}
+>
+  Согласованные ({approvedCount})
+</button>
+
+<button
+  onClick={() => setFilterStatus('paid')}
+  style={{
+    padding: '8px 14px',
+    border: 'none',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    background:
+      filterStatus === 'paid' ? '#111' : '#eee',
+    color:
+      filterStatus === 'paid' ? '#fff' : '#111'
+  }}
+>
+  Оплаченные ({paidCount})
+</button>
+  
+</div>
+
       {orders.length === 0 ? (
         <div style={{ background: '#fff', padding: '40px', borderRadius: '8px', textAlign: 'center', color: '#666' }}>
           Заказов пока нет
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {orders.map(order => (
+          {filteredOrders.map(order => (
             <div key={order.id} style={{ background: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <h3 style={{ margin: '0 0 8px 0', fontFamily: 'Cormorant Garamond, serif', fontSize: '20px' }}>
-                    Заказ #{order.id}
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
-                    {new Date(order.date).toLocaleString('ru-RU')}
-                  </p>
-                </div>
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      flexWrap: 'wrap',
+      marginBottom: '8px',
+    }}
+  >
+    <h3
+      style={{
+        margin: 0,
+        fontFamily: 'Cormorant Garamond, serif',
+        fontSize: '20px',
+      }}
+    >
+      Заказ #{order.id}
+    </h3>
+
+    <span
+      style={{
+        padding: '4px 10px',
+        borderRadius: '999px',
+        fontSize: '12px',
+        fontWeight: 600,
+        color: '#fff',
+        background: statusColors[order.status],
+      }}
+    >
+      {statusLabels[order.status]}
+    </span>
+  </div>
+
+  <p
+    style={{
+      margin: 0,
+      fontSize: '13px',
+      color: '#666',
+    }}
+  >
+    {new Date(order.date).toLocaleString('ru-RU')}
+  </p>
+</div>
                 <button
                   onClick={() => deleteOrder(order.id)}
                   style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
@@ -141,6 +350,21 @@ export default function OrdersPage() {
                       <strong>Телефон:</strong> {order.phone}
                     </p>
                   )}
+
+                  {order.deliveryType && (
+  <p style={{ margin: '4px 0', fontSize: '14px' }}>
+    <strong>Способ получения:</strong>{' '}
+    {order.deliveryType === 'pickup'
+      ? 'Самовывоз'
+      : 'Доставка'}
+  </p>
+)}
+
+{order.deliveryType === 'delivery' && order.address && (
+  <p style={{ margin: '4px 0', fontSize: '14px' }}>
+    <strong>Адрес доставки:</strong> {order.address}
+  </p>
+)}
                 </div>
               )}
 

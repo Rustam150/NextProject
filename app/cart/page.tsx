@@ -17,21 +17,28 @@ export default function CartPage() {
   const { data: HERMITAGE, loaded } = useStoreData();
   const [cart, setCart] = useState<Array<{ id: string; qty: number }>>([]);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-  });
+  firstName: '',
+  lastName: '',
+  phone: '',
+  email: '',
+  deliveryType: 'pickup',
+  address: '',
+  comment: '',
+});
 
   useEffect(() => {
     if (!loaded) return;
     setCart(Store.cart());
     const user = Store.user();
     if (user) {
-      setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phone: user.phone || '',
-      });
+      if (user) {
+  setFormData(prev => ({
+    ...prev,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone || '',
+  }));
+}
     }
   }, [loaded]);
 
@@ -73,31 +80,32 @@ export default function CartPage() {
   };
 
   const submitOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    const orderItems = items.map((i) => ({
-  id: String(i.id),
-  name: i.name,
-  qty: i.qty,
-  price: i.price,
-}));
+  e.preventDefault();
 
-    const lines = orderItems.map((p) => `- ${p.name}${p.qty > 1 ? ` (×${p.qty})` : ''}`);
-    const text = `Здравствуйте.
+  const orderItems = items.map((i) => ({
+    id: String(i.id),
+    name: i.name,
+    qty: i.qty,
+    price: i.price,
+  }));
 
-Меня зовут: ${formData.firstName} ${formData.lastName}
-Телефон: ${formData.phone}
+  Store.addOrder({
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    phone: formData.phone,
+    email: formData.email,
+    deliveryType: formData.deliveryType as 'pickup' | 'delivery',
+    address: formData.address,
+    comment: formData.comment,
+    status: 'new',
+    items: orderItems,
+  });
 
-Меня интересуют следующие товары:
+  Store.setCart([]);
+  setCart([]);
 
-${lines.join('\n')}
-
-Прошу связаться со мной.`;
-
-    const url = `https://wa.me/${HERMITAGE.whatsapp}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-    Store.setCart([]);
-    setCart([]);
-  };
+  alert('Заказ успешно отправлен!');
+};
 
   if (!loaded) {
     return (
@@ -155,9 +163,7 @@ ${lines.join('\n')}
       <header className="page-header">
         <div className="container">
           <h1>Оформление заявки</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 8 }}>
-            Онлайн-оплаты нет. После оформления откроется WhatsApp с готовым сообщением для менеджера.
-          </p>
+          
         </div>
       </header>
 
@@ -214,47 +220,133 @@ ${lines.join('\n')}
           </div>
 
           <form className="checkout-form" onSubmit={submitOrder}>
-            <h2 style={{ fontSize: 24, marginBottom: 24, fontFamily: 'var(--font-display)' }}>
-              Ваши данные
-            </h2>
-            <div className="form-group">
-              <label htmlFor="firstName">Имя</label>
-              <input
-                type="text"
-                id="firstName"
-                required
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="lastName">Фамилия</label>
-              <input
-                type="text"
-                id="lastName"
-                required
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="phone">Телефон</label>
-              <input
-                type="tel"
-                id="phone"
-                required
-                placeholder="+7 (___) ___-__-__"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            <button type="submit" className="btn btn--primary btn--block">
-              Оформить заказ
-            </button>
-            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 16, textAlign: 'center' }}>
-              Нажимая кнопку, вы перейдёте в WhatsApp для отправки заявки менеджеру
-            </p>
-          </form>
+  <h2 style={{ fontSize: 24, marginBottom: 24, fontFamily: 'var(--font-display)' }}>
+    Ваши данные
+  </h2>
+
+  <div className="form-group">
+    <label htmlFor="firstName">Имя</label>
+    <input
+      type="text"
+      id="firstName"
+      required
+      value={formData.firstName}
+      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+    />
+  </div>
+
+  <div className="form-group">
+    <label htmlFor="lastName">Фамилия</label>
+    <input
+      type="text"
+      id="lastName"
+      required
+      value={formData.lastName}
+      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+    />
+  </div>
+
+  <div className="form-group">
+    <label htmlFor="phone">Телефон</label>
+    <input
+      type="tel"
+      id="phone"
+      required
+      placeholder="+7 (___) ___-__-__"
+      value={formData.phone}
+      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+    />
+  </div>
+
+  <h3 style={{ marginBottom: '12px' }}>Способ получения</h3>
+
+  <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
+    <label>
+      <input
+        type="radio"
+        name="deliveryType"
+        value="pickup"
+        checked={formData.deliveryType === 'pickup'}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            deliveryType: e.target.value as 'pickup' | 'delivery',
+          })
+        }
+      />
+      {' '}Самовывоз
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        name="deliveryType"
+        value="delivery"
+        checked={formData.deliveryType === 'delivery'}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            deliveryType: e.target.value as 'pickup' | 'delivery',
+          })
+        }
+      />
+      {' '}Доставка
+    </label>
+  </div>
+
+  {formData.deliveryType === 'delivery' && (
+    <div className="form-group">
+      <label htmlFor="address">Адрес доставки</label>
+      <textarea
+        id="address"
+        rows={4}
+        style={{
+          width: '100%',
+          padding: '12px',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          resize: 'vertical',
+        }}
+        value={formData.address}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            address: e.target.value,
+          })
+        }
+      />
+    </div>
+  )}
+
+  <div className="form-group">
+    <label htmlFor="comment">Комментарий к заказу</label>
+    <textarea
+      id="comment"
+      rows={4}
+      placeholder="Например: позвонить после 18:00, поднять на этаж, уточнить наличие цвета и т.д."
+      style={{
+        width: '100%',
+        padding: '12px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        resize: 'vertical',
+      }}
+      value={formData.comment}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          comment: e.target.value,
+        })
+      }
+    />
+  </div>
+
+  <button type="submit" className="btn btn--primary btn--block">
+    Оформить заказ
+  </button>
+
+  
+</form>
         </div>
       </div>
 

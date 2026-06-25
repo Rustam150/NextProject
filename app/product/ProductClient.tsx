@@ -29,11 +29,13 @@ export default function ProductPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [orderForm, setOrderForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    comment: '',
-  });
+  firstName: '',
+  lastName: '',
+  phone: '',
+  comment: '',
+  deliveryType: 'pickup',
+  address: '',
+});
 
   useEffect(() => {
     if (product) {
@@ -114,7 +116,14 @@ export default function ProductPage() {
 
     alert('Заявка успешно отправлена! Менеджер свяжется с вами в ближайшее время.');
     setShowOrderModal(false);
-    setOrderForm({ firstName: '', lastName: '', phone: '', comment: '' });
+    setOrderForm({
+  firstName: '',
+  lastName: '',
+  phone: '',
+  comment: '',
+  deliveryType: 'pickup',
+  address: '',
+});
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -415,7 +424,7 @@ export default function ProductPage() {
               <form onSubmit={handleOrderSubmit}>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                    Имя *
+                    Имя 
                   </label>
                   <input
                     type="text"
@@ -440,7 +449,7 @@ export default function ProductPage() {
 
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
-                    Телефон *
+                    Телефон 
                   </label>
                   <input
                     type="tel"
@@ -450,6 +459,70 @@ export default function ProductPage() {
                     style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
                   />
                 </div>
+
+                <div style={{ marginBottom: '16px' }}>
+  <label
+    style={{
+      display: 'block',
+      marginBottom: '8px',
+      fontSize: '14px',
+      color: '#333'
+    }}
+  >
+    Способ получения
+  </label>
+
+  <select
+    value={orderForm.deliveryType}
+    onChange={(e) =>
+      setOrderForm({
+        ...orderForm,
+        deliveryType: e.target.value
+      })
+    }
+    style={{
+      width: '100%',
+      padding: '12px',
+      border: '1px solid #ddd',
+      borderRadius: '4px'
+    }}
+  >
+    <option value="pickup">Самовывоз</option>
+    <option value="delivery">Доставка</option>
+  </select>
+</div>
+
+{orderForm.deliveryType === 'delivery' && (
+  <div style={{ marginBottom: '16px' }}>
+    <label
+      style={{
+        display: 'block',
+        marginBottom: '8px',
+        fontSize: '14px',
+        color: '#333'
+      }}
+    >
+      Адрес доставки
+    </label>
+
+    <input
+      type="text"
+      value={orderForm.address}
+      onChange={(e) =>
+        setOrderForm({
+          ...orderForm,
+          address: e.target.value
+        })
+      }
+      style={{
+        width: '100%',
+        padding: '12px',
+        border: '1px solid #ddd',
+        borderRadius: '4px'
+      }}
+    />
+  </div>
+)}
 
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
