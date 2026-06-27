@@ -51,12 +51,13 @@ export default function CartPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const items: CartItem[] = cart
-    .map((c) => {
-      const p = HERMITAGE.products.find((p: any) => String(p.id) === String(c.id));
-      return p ? { ...p, qty: c.qty } : null;
-    })
-    .filter((item): item is CartItem => item !== null);
+  const items = cart.flatMap((c) => {
+  const p = HERMITAGE.products.find(
+    (p: any) => String(p.id) === String(c.id)
+  );
+
+  return p ? [{ ...p, qty: c.qty } as CartItem] : [];
+});
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
