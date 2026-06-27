@@ -21,8 +21,8 @@ const COUNTRIES = ['Италия', 'Германия', 'Испания', 'Фра
 
 const AVAILABILITY_OPTIONS = [
   { value: 'in_stock', label: 'В наличии' },
-  { value: 'made_to_order', label: 'Под заказ' },
-  { value: 'both', label: 'Есть и в наличии и под заказ' },
+  { value: 'preorder', label: 'Под заказ' },
+  { value: 'out_of_stock', label: 'Нет в наличии' },
 ];
 
 const COLOR_OPTIONS = [
@@ -66,6 +66,7 @@ export default function ProductsPage() {
     
     if (saved) {
       const parsed = JSON.parse(saved);
+      console.log('PRODUCTS:', parsed);
       setProducts(parsed);
     } else {
       try {
@@ -73,7 +74,7 @@ export default function ProductsPage() {
         const hermitageData = dataModule.HERMITAGE;
         
         const productsFromData = hermitageData.products.map((p: any) => ({
-          id: p.id,
+          id: p.id || Date.now() + Math.random(),
           name: p.name,
           price: p.price,
           category: p.category || '',
@@ -153,7 +154,12 @@ export default function ProductsPage() {
       brand: product.brand || product.factory || '',
       country: product.country,
       images: product.images || ['/images/p1.jpg'],
-      inStockStatus: product.inStock === 'both' ? 'both' : (product.inStock ? 'in_stock' : 'made_to_order'),
+      inStockStatus:
+  product.inStock === 'preorder'
+    ? 'preorder'
+    : product.inStock
+      ? 'in_stock'
+      : 'out_of_stock',
       stockQuantity: String(product.stockQuantity || ''),
       popular: product.popular || false,
       isNew: product.isNew || false,
@@ -240,11 +246,12 @@ export default function ProductsPage() {
     const finalCountry = formData.country === 'Другая' ? formData.customCountry : formData.country;
 
     let inStockValue: boolean | string = true;
-    if (formData.inStockStatus === 'made_to_order') {
-      inStockValue = false;
-    } else if (formData.inStockStatus === 'both') {
-      inStockValue = 'both';
-    }
+
+if (formData.inStockStatus === 'preorder') {
+  inStockValue = 'preorder';
+} else if (formData.inStockStatus === 'out_of_stock') {
+  inStockValue = false;
+}
 
     if (editingProduct) {
       const updated = products.map(p => {
@@ -270,7 +277,7 @@ export default function ProductsPage() {
     } else {
       const newProduct = {
         ...formData,
-        id: Math.max(...products.map(p => p.id), 0) + 1,
+        id: `p${Date.now()}`,
         price,
         factory: formData.brand,
         images: formData.images,
@@ -329,12 +336,20 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
-              <tr key={product.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '16px', fontSize: '14px' }}>{product.id}</td>
+            {filteredProducts.map((product) => {
+  console.log('ID =', product.id, product);
+
+  return (
+              <tr
+  key={product.id ?? Math.random()}
+  style={{ borderBottom: '1px solid #eee' }}
+>
+                <td style={{ padding: '16px', fontSize: '14px' }}>
+  №{filteredProducts.indexOf(product) + 1}
+</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</td>
                 <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{categories.find(c => c.id === product.category)?.name || product.category}</td>
-                <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{product.price.toLocaleString()} ₽</td>
+                <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{String(product.price)} ₽</td>
                 <td style={{ padding: '16px', fontSize: '14px' }}>
                   {product.stockQuantity != null ? (
                     <span style={{ padding: '4px 8px', background: product.stockQuantity > 5 ? '#e8f5e9' : (product.stockQuantity > 0 ? '#fff3e0' : '#ffebee'), color: product.stockQuantity > 5 ? '#2e7d32' : (product.stockQuantity > 0 ? '#e65100' : '#c62828'), borderRadius: '12px', fontSize: '12px' }}>
@@ -361,7 +376,8 @@ export default function ProductsPage() {
                   <button onClick={() => handleDelete(product.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Удалить</button>
                 </td>
               </tr>
-            ))}
+            );
+          })}
           </tbody>
         </table>
       </div>
@@ -491,19 +507,50 @@ export default function ProductsPage() {
               </select>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Количество на складе</label>
-              <input
-                type="number"
-                value={formData.stockQuantity}
-                onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                placeholder="Оставьте пустым если не ограничено"
-                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
-              />
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                Например: 1, 5, 10. Оставьте пустым если много
-              </p>
-            </div>
+            {formData.inStockStatus === 'in_stock' && (
+  <div style={{ marginBottom: '16px' }}>
+    <label
+      style={{
+        display: 'block',
+        marginBottom: '8px',
+        fontSize: '14px',
+        color: '#333',
+      }}
+    >
+      Количество на складе
+    </label>
+
+    <input
+      type="number"
+      value={formData.stockQuantity}
+      onChange={(e) =>
+        setFormData({
+          ...formData,
+          stockQuantity: e.target.value,
+        })
+      }
+      placeholder="Оставьте пустым если не ограничено"
+      style={{
+        width: '100%',
+        padding: '12px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        fontSize: '14px',
+        boxSizing: 'border-box',
+      }}
+    />
+
+    <p
+      style={{
+        fontSize: '12px',
+        color: '#666',
+        marginTop: '4px',
+      }}
+    >
+      Например: 1, 5, 10. Оставьте пустым если товара много.
+    </p>
+  </div>
+)}
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Описание</label>

@@ -472,7 +472,7 @@ export interface Product {
   material: string;
   sizes: string;
   sku: string;
-  inStock: boolean;
+  inStock: true | false | 'preorder';
   isNew: boolean;
   isSale: boolean;
   popular: boolean;

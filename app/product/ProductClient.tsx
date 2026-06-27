@@ -15,8 +15,24 @@ export default function ProductPage() {
   const { data: HERMITAGE_DATA, loaded } = useStoreData();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+  const [localProducts, setLocalProducts] = useState<any[]>([]);
 
-  const product = id ? HERMITAGE_DATA.products.find((p: any) => String(p.id) === String(id)) : undefined;
+  useEffect(() => {
+  const saved = localStorage.getItem('products');
+
+  if (saved) {
+    setLocalProducts(JSON.parse(saved));
+  }
+}, []);
+
+const allProducts =
+  localProducts.length > 0
+    ? localProducts
+    : HERMITAGE_DATA.products;
+
+const product = id
+  ? allProducts.find((p: any) => String(p.id) === String(id))
+  : undefined;
 
   const [isFav, setIsFav] = useState(false);
   const [isInCompare, setIsInCompare] = useState(false);
@@ -58,6 +74,7 @@ export default function ProductPage() {
 
   if (!loaded) return null;
 
+  console.log(product);
   if (!product) {
     return (
       <>
@@ -175,26 +192,40 @@ export default function ProductPage() {
     .filter((p: any) => p.id !== product.id && (p.category === product.category || p.factory === product.factory))
     .slice(0, 4);
 
-  const getAvailabilityText = () => {
-    const p = product as any;
-    if (p.inStock === 'both') return 'В наличии и под заказ';
-    if (p.inStock === false) return 'Под заказ';
-    if (p.stockQuantity != null) {
-      if (p.stockQuantity === 0) return 'Нет в наличии';
-      if (p.stockQuantity === 1) return 'Осталась 1 шт.';
-      if (p.stockQuantity <= 5) return `Осталось ${p.stockQuantity} шт.`;
-      return `В наличии (${p.stockQuantity} шт.)`;
-    }
-    return 'В наличии';
-  };
+ const getAvailabilityText = () => {
+  const p = product as any;
 
-  const getAvailabilityColor = () => {
-    const p = product as any;
-    if (p.inStock === false || p.stockQuantity === 0) return '#c62828';
-    if (p.inStock === 'both') return '#e65100';
-    if (p.stockQuantity != null && p.stockQuantity <= 5) return '#e65100';
-    return '#2e7d32';
-  };
+  if (p.inStock === 'preorder') {
+    return 'Под заказ';
+  }
+
+  if (p.inStock === false) {
+    return 'Нет в наличии';
+  }
+
+  if (p.stockQuantity != null) {
+    if (p.stockQuantity === 0) return 'Нет в наличии';
+    if (p.stockQuantity === 1) return 'Осталась 1 шт.';
+    if (p.stockQuantity <= 5) return `Осталось ${p.stockQuantity} шт.`;
+    return `В наличии (${p.stockQuantity} шт.)`;
+  }
+
+  return 'В наличии';
+};
+
+ const getAvailabilityColor = () => {
+  const p = product as any;
+
+  if (p.inStock === false || p.stockQuantity === 0) {
+    return '#c62828'; // красный
+  }
+
+  if (p.stockQuantity != null && p.stockQuantity <= 5) {
+    return '#e65100'; // оранжевый
+  }
+
+  return '#2e7d32'; // зеленый
+};
 
   return (
     <>
@@ -233,27 +264,65 @@ export default function ProductPage() {
     setTouchEnd(null);
   }}
 >
+  {product.images && product.images.length > 1 && (
+    <>
+      <button
+        type="button"
+        className="gallery-main-arrow gallery-main-arrow--left"
+        onClick={() =>
+          setActiveImage((prev) =>
+            prev === 0 ? product.images.length - 1 : prev - 1
+          )
+        }
+      >
+        ‹
+      </button>
+
+      <button
+        type="button"
+        className="gallery-main-arrow gallery-main-arrow--right"
+        onClick={() =>
+          setActiveImage((prev) =>
+            prev === product.images.length - 1 ? 0 : prev + 1
+          )
+        }
+      >
+        ›
+      </button>
+    </>
+  )}
+
   <img
     id="main-image"
     src={product.images?.[activeImage] || product.image}
     alt={product.name}
   />
 </div>
+<div className="gallery-progress">
+  <div
+    className="gallery-progress__bar"
+    style={{
+      width: `${((activeImage + 1) / product.images.length) * 100}%`,
+    }}
+  />
+</div>
           {product.images && product.images.length > 1 && (
   <div className="gallery-thumbs-wrapper">
 
-    <button
-      type="button"
-      className="gallery-arrow gallery-arrow-left"
-      onClick={() =>
-        thumbsRef.current?.scrollBy({
-          left: -300,
-          behavior: 'smooth'
-        })
-      }
-    >
-      ‹
-    </button>
+    {product.images.length > 6 && (
+  <button
+    type="button"
+    className="gallery-arrow gallery-arrow-left"
+    onClick={() =>
+      thumbsRef.current?.scrollBy({
+        left: -696,
+        behavior: 'smooth'
+      })
+    }
+  >
+    ‹
+  </button>
+)}
 
     <div
       ref={thumbsRef}
@@ -271,18 +340,20 @@ export default function ProductPage() {
       ))}
     </div>
 
-    <button
-      type="button"
-      className="gallery-arrow gallery-arrow-right"
-      onClick={() =>
-        thumbsRef.current?.scrollBy({
-          left: 300,
-          behavior: 'smooth'
-        })
-      }
-    >
-      ›
-    </button>
+    {product.images.length > 6 && (
+  <button
+    type="button"
+    className="gallery-arrow gallery-arrow-right"
+    onClick={() =>
+      thumbsRef.current?.scrollBy({
+        left: 696,
+        behavior: 'smooth'
+      })
+    }
+  >
+    ›
+  </button>
+)}
 
   </div>
 )}

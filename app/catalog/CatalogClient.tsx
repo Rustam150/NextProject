@@ -51,8 +51,9 @@ export default function CatalogClient() {
     if (filters.factory && p.factory !== filters.factory) return false;
     if (filters.color && p.color !== filters.color) return false;
     if (filters.material && !p.material.includes(filters.material)) return false;
-    if (filters.inStock === 'yes' && p.inStock !== true && p.inStock !== 'both') return false;
-    if (filters.inStock === 'no' && p.inStock !== false && p.inStock !== 'both') return false;
+    if (filters.inStock === 'yes' && p.inStock !== true) return false;
+    if (filters.inStock === 'preorder' && p.inStock !== 'preorder') return false;
+    if (filters.inStock === 'no' && p.inStock !== false) return false;
     if (filters.minPrice && p.price < Number(filters.minPrice)) return false;
     if (filters.maxPrice && p.price > Number(filters.maxPrice)) return false;
     if (search) {
@@ -102,7 +103,7 @@ export default function CatalogClient() {
 
       <div className="container catalog-layout">
         <aside className={`filters-panel ${filtersOpen ? 'is-open' : ''}`}>
-          <button type="button" className="filters-panel__close" onClick={() => setFiltersOpen(false)} aria-label="Закрыть">×</button>
+          
           <form onSubmit={(e) => { e.preventDefault(); setFiltersOpen(false); }}>
             <div className="filter-group">
               <label>Цена от</label>
@@ -145,7 +146,8 @@ export default function CatalogClient() {
               <select value={filters.inStock} onChange={(e) => setFilters({ ...filters, inStock: e.target.value })}>
                 <option value="">Все</option>
                 <option value="yes">В наличии</option>
-                <option value="no">Под заказ</option>
+                <option value="preorder">Под заказ</option>
+                <option value="no">Нет в наличии</option>
               </select>
             </div>
             <button type="submit" className="btn btn--primary btn--block">Применить</button>
@@ -170,7 +172,7 @@ export default function CatalogClient() {
 
           <div className="catalog-toolbar">
             <button type="button" className="filters-toggle" onClick={() => setFiltersOpen(true)}>Фильтры</button>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{sortedProducts.length} товаров</p>
+            
             <select id="sort-select" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Сортировка">
               <option value="popular">По популярности</option>
               <option value="price-asc">По цене: сначала дешевле</option>

@@ -104,22 +104,27 @@ const deliveryCount = orders.filter(o => o.status === 'delivery').length;
 const completedCount = orders.filter(o => o.status === 'completed').length;
 const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
 
-  const filteredOrders = orders.filter((order) => {
-  const matchesStatus =
-    filterStatus === 'all'
-      ? true
-      : order.status === filterStatus;
+  const filteredOrders = orders
+  .filter((order) => {
+    const matchesStatus =
+      filterStatus === 'all'
+        ? true
+        : order.status === filterStatus;
 
-  const searchText = search.toLowerCase();
+    const searchText = search.toLowerCase();
 
-  const matchesSearch =
-    `${order.firstName} ${order.lastName}`
-      .toLowerCase()
-      .includes(searchText) ||
-    order.phone.toLowerCase().includes(searchText);
+    const matchesSearch =
+      `${order.firstName} ${order.lastName}`
+        .toLowerCase()
+        .includes(searchText) ||
+      order.phone.toLowerCase().includes(searchText);
 
-  return matchesStatus && matchesSearch;
-});
+    return matchesStatus && matchesSearch;
+  })
+  .sort(
+    (a, b) =>
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   return (
     <div>
@@ -285,7 +290,7 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filteredOrders.map(order => (
+          {filteredOrders.map((order, index) => (
             <div key={order.id} style={{ background: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
@@ -305,7 +310,7 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
         fontSize: '20px',
       }}
     >
-      Заказ #{order.id}
+      Заказ №{filteredOrders.length - index}
     </h3>
 
     <span

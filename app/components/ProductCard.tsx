@@ -46,8 +46,29 @@ export default function ProductCard({ product }: { product: Product }) {
         <h3 className="product-card__title">
           <Link href={`/product?id=${product.id}`}>{product.name}</Link>
         </h3>
-        <p className="product-card__meta">{product.country} · {product.factory}</p>
-        <p className="product-card__price">{formatPrice(product.price)}</p>
+        <p className="product-card__meta">
+  {product.country} · {product.factory}
+</p>
+
+<p
+  className={`product-card__availability ${
+    product.inStock === false
+      ? 'out'
+      : product.inStock === 'preorder'
+      ? 'order'
+      : 'in'
+  }`}
+>
+  {product.inStock === false
+    ? 'Нет в наличии'
+    : product.inStock === 'preorder'
+    ? 'Под заказ'
+    : 'В наличии'}
+</p>
+
+<p className="product-card__price">
+  {formatPrice(product.price)}
+</p>
         <Link href={`/product?id=${product.id}`} className="btn btn--outline btn--sm">Подробнее</Link>
       </div>
     </article>
