@@ -32,6 +32,7 @@ export function useStoreData() {
       try {
         const customProducts = JSON.parse(savedProducts);
         newData.products = customProducts.map((p: any) => ({
+          
           ...p,
           images: p.images || (p.image ? [p.image] : ['/images/p1.jpg']),
           factory: p.factory || p.brand || '',
@@ -41,6 +42,8 @@ export function useStoreData() {
           material: p.material || '',
           color: p.color || '',
         }));
+
+        console.log("PRODUCTS FROM LOCALSTORAGE:", newData.products);
       } catch (e) {
         console.error('Error parsing products', e);
       }

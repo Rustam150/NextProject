@@ -104,14 +104,35 @@ export default function ProductsPage() {
   };
 
   const loadCategories = () => {
-    const saved = localStorage.getItem('categories');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setCategories(parsed);
-    } else {
-      setCategories(CATEGORIES);
-    }
+  const saved = localStorage.getItem('categories');
+
+  const CATEGORY_NAME_TO_ID: Record<string, string> = {
+    'Спальня': 'bedroom',
+    'Гостиная': 'living',
+    'Столовая': 'dining',
+    'Кабинет': 'office',
+    'Кухня': 'kitchen',
+    'Прихожая': 'hallway',
+    'Детская': 'kids',
+    'Мягкая мебель': 'soft',
+    'Посуда': 'dishes',
+    'Ароматы': 'aromas',
+    'Текстиль': 'textile',
   };
+
+  if (saved) {
+    const parsed = JSON.parse(saved);
+
+    setCategories(
+      parsed.map((c: any) => ({
+        ...c,
+        id: CATEGORY_NAME_TO_ID[c.name] || String(c.id),
+      }))
+    );
+  } else {
+    setCategories(CATEGORIES);
+  }
+};
 
   useEffect(() => {
     if (products.length > 0) {
@@ -253,6 +274,7 @@ if (formData.inStockStatus === 'preorder') {
   inStockValue = false;
 }
 
+console.log("SAVE CATEGORY:", formData.category);
     if (editingProduct) {
       const updated = products.map(p => {
         if (p.id === editingProduct.id) {
@@ -275,6 +297,8 @@ if (formData.inStockStatus === 'preorder') {
       setProducts(updated);
       localStorage.setItem('products', JSON.stringify(updated));
     } else {
+      console.log('CATEGORY:', formData.category);
+      console.log('CATEGORIES:', categories);
       const newProduct = {
         ...formData,
         id: `p${Date.now()}`,
