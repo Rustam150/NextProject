@@ -62,23 +62,20 @@ export default function ProductsPage() {
   }, []);
 
   const loadBrands = () => {
-  const saved = localStorage.getItem('brands');
-
-  if (saved) {
-    setBrands(JSON.parse(saved));
-  } else {
-    setBrands(mockBrands); // если есть дефолтные
-  }
-};
+    const saved = localStorage.getItem('brands');
+    if (saved) {
+      setBrands(JSON.parse(saved));
+    } else {
+      setBrands(mockBrands);
+    }
+  };
 
   const loadProducts = async () => {
     setLoading(true);
-    
     const saved = localStorage.getItem('products');
     
     if (saved) {
       const parsed = JSON.parse(saved);
-      console.log('PRODUCTS:', parsed);
       setProducts(parsed);
     } else {
       try {
@@ -111,40 +108,37 @@ export default function ProductsPage() {
         console.error('Error loading products:', error);
       }
     }
-    
     setLoading(false);
   };
 
   const loadCategories = () => {
-  const saved = localStorage.getItem('categories');
+    const saved = localStorage.getItem('categories');
+    const CATEGORY_NAME_TO_ID: Record<string, string> = {
+      'Спальня': 'bedroom',
+      'Гостиная': 'living',
+      'Столовая': 'dining',
+      'Кабинет': 'office',
+      'Кухня': 'kitchen',
+      'Прихожая': 'hallway',
+      'Детская': 'kids',
+      'Мягкая мебель': 'soft',
+      'Посуда': 'dishes',
+      'Ароматы': 'aromas',
+      'Текстиль': 'textile',
+    };
 
-  const CATEGORY_NAME_TO_ID: Record<string, string> = {
-    'Спальня': 'bedroom',
-    'Гостиная': 'living',
-    'Столовая': 'dining',
-    'Кабинет': 'office',
-    'Кухня': 'kitchen',
-    'Прихожая': 'hallway',
-    'Детская': 'kids',
-    'Мягкая мебель': 'soft',
-    'Посуда': 'dishes',
-    'Ароматы': 'aromas',
-    'Текстиль': 'textile',
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setCategories(
+        parsed.map((c: any) => ({
+          ...c,
+          id: CATEGORY_NAME_TO_ID[c.name] || String(c.id),
+        }))
+      );
+    } else {
+      setCategories(CATEGORIES);
+    }
   };
-
-  if (saved) {
-    const parsed = JSON.parse(saved);
-
-    setCategories(
-      parsed.map((c: any) => ({
-        ...c,
-        id: CATEGORY_NAME_TO_ID[c.name] || String(c.id),
-      }))
-    );
-  } else {
-    setCategories(CATEGORIES);
-  }
-};
 
   useEffect(() => {
     if (products.length > 0) {
@@ -187,12 +181,7 @@ export default function ProductsPage() {
       brand: product.brand || product.factory || '',
       country: product.country,
       images: product.images || ['/images/p1.jpg'],
-      inStockStatus:
-  product.inStock === 'preorder'
-    ? 'preorder'
-    : product.inStock
-      ? 'in_stock'
-      : 'out_of_stock',
+      inStockStatus: product.inStock === 'preorder' ? 'preorder' : product.inStock ? 'in_stock' : 'out_of_stock',
       stockQuantity: String(product.stockQuantity || ''),
       popular: product.popular || false,
       isNew: product.isNew || false,
@@ -221,7 +210,6 @@ export default function ProductsPage() {
       
         img.onload = () => {
           const MAX_WIDTH = 800;
-      
           let width = img.width;
           let height = img.height;
       
@@ -232,34 +220,20 @@ export default function ProductsPage() {
       
           canvas.width = width;
           canvas.height = height;
-      
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
-      
-          const compressedImage = canvas.toDataURL(
-            'image/jpeg',
-            0.6
-          );
-      
+          const compressedImage = canvas.toDataURL('image/jpeg', 0.6);
           newImages.push(compressedImage);
-      
           loadedCount++;
       
           if (loadedCount === files.length) {
             if (e.target.multiple) {
-              setFormData({
-                ...formData,
-                images: [...formData.images, ...newImages],
-              });
+              setFormData({ ...formData, images: [...formData.images, ...newImages] });
             } else {
-              setFormData({
-                ...formData,
-                images: newImages,
-              });
+              setFormData({ ...formData, images: newImages });
             }
           }
         };
-      
         img.src = URL.createObjectURL(file);
       });
     }
@@ -279,14 +253,12 @@ export default function ProductsPage() {
     const finalCountry = formData.country === 'Другая' ? formData.customCountry : formData.country;
 
     let inStockValue: boolean | string = true;
+    if (formData.inStockStatus === 'preorder') {
+      inStockValue = 'preorder';
+    } else if (formData.inStockStatus === 'out_of_stock') {
+      inStockValue = false;
+    }
 
-if (formData.inStockStatus === 'preorder') {
-  inStockValue = 'preorder';
-} else if (formData.inStockStatus === 'out_of_stock') {
-  inStockValue = false;
-}
-
-console.log("SAVE CATEGORY:", formData.category);
     if (editingProduct) {
       const updated = products.map(p => {
         if (p.id === editingProduct.id) {
@@ -309,8 +281,6 @@ console.log("SAVE CATEGORY:", formData.category);
       setProducts(updated);
       localStorage.setItem('products', JSON.stringify(updated));
     } else {
-      console.log('CATEGORY:', formData.category);
-      console.log('CATEGORIES:', categories);
       const newProduct = {
         ...formData,
         id: `p${Date.now()}`,
@@ -345,77 +315,129 @@ console.log("SAVE CATEGORY:", formData.category);
         <button onClick={handleAdd} className="admin-btn" style={{ padding: '12px 24px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Добавить товар</button>
       </div>
 
-      <input type="text" placeholder="Поиск товаров..." value={search} onChange={(e) => setSearch(e.target.value)} className="search-input" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '24px', fontSize: '14px', boxSizing: 'border-box' }} />
+      <input 
+        type="text" 
+        placeholder="Поиск товаров..." 
+        value={search} 
+        onChange={(e) => setSearch(e.target.value)} 
+        className="search-input" 
+        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '24px', fontSize: '14px', boxSizing: 'border-box' }} 
+      />
 
-      <div className="products-table" style={{ 
-        background: '#fff', 
-        borderRadius: '8px', 
-        overflow: 'hidden', 
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      {/* КОНТЕЙНЕР С ГОРИЗОНТАЛЬНЫМ СКРОЛЛОМ */}
+      <div style={{
+        width: '100%',
         overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        marginBottom: '24px',
       }}>
-        <table style={{ 
-          width: '100%', 
-          borderCollapse: 'collapse',
-          minWidth: '1000px',
+        <div style={{
+          minWidth: '1100px',
+          background: '#fff',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         }}>
-          <thead>
-            <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #eee' }}>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '60px' }}>ID</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, minWidth: '200px' }}>Название</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Категория</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Цена</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Остаток</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Популярный</th>
-              <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Статус</th>
-              <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '200px' }}>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product) => {
-  console.log('ID =', product.id, product);
-
-  return (
-              <tr
-  key={product.id ?? Math.random()}
-  style={{ borderBottom: '1px solid #eee' }}
->
-                <td style={{ padding: '16px', fontSize: '14px' }}>
-  №{filteredProducts.indexOf(product) + 1}
-</td>
-                <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</td>
-                <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>{categories.find(c => c.id === product.category)?.name || product.category}</td>
-                <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{String(product.price)} ₽</td>
-                <td style={{ padding: '16px', fontSize: '14px' }}>
-                  {product.stockQuantity != null ? (
-                    <span style={{ padding: '4px 8px', background: product.stockQuantity > 5 ? '#e8f5e9' : (product.stockQuantity > 0 ? '#fff3e0' : '#ffebee'), color: product.stockQuantity > 5 ? '#2e7d32' : (product.stockQuantity > 0 ? '#e65100' : '#c62828'), borderRadius: '12px', fontSize: '12px' }}>
-                      {product.stockQuantity} шт.
-                    </span>
-                  ) : (
-                    <span style={{ color: '#999', fontSize: '12px' }}>—</span>
-                  )}
-                </td>
-                <td style={{ padding: '16px' }}>
-                  {product.popular ? (
-                    <span style={{ padding: '4px 12px', background: '#fff3e0', color: '#e65100', borderRadius: '12px', fontSize: '12px' }}>✓</span>
-                  ) : (
-                    <span style={{ padding: '4px 12px', background: '#f5f5f5', color: '#999', borderRadius: '12px', fontSize: '12px' }}>—</span>
-                  )}
-                </td>
-                <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 12px', background: product.inStock === 'both' ? '#fff3e0' : (product.inStock ? '#e8f5e9' : '#ffebee'), color: product.inStock === 'both' ? '#e65100' : (product.inStock ? '#2e7d32' : '#c62828'), borderRadius: '12px', fontSize: '12px', display: 'inline-block' }}>
-                    {product.inStock === 'both' ? 'Оба варианта' : (product.inStock ? 'В наличии' : 'Под заказ')}
-                  </span>
-                </td>
-                <td style={{ padding: '16px', textAlign: 'right' }}>
-                  <button onClick={() => handleEdit(product)} style={{ padding: '6px 12px', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', marginRight: '8px' }}>Редактировать</button>
-                  <button onClick={() => handleDelete(product.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Удалить</button>
-                </td>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+          }}>
+            <thead>
+              <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #eee' }}>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '60px' }}>ID</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, minWidth: '200px' }}>Название</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Категория</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '120px' }}>Цена</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Остаток</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '100px' }}>Популярный</th>
+                <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '150px' }}>Статус</th>
+                <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 600, width: '200px' }}>Действия</th>
               </tr>
-            );
-          })}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => (
+                <tr key={product.id ?? Math.random()} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                    №{filteredProducts.indexOf(product) + 1}
+                  </td>
+                  <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500, maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {product.name}
+                  </td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>
+                    {categories.find(c => c.id === product.category)?.name || product.category}
+                  </td>
+                  <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>
+                    {String(product.price)} ₽
+                  </td>
+                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                    {product.stockQuantity != null ? (
+                      <span style={{
+                        padding: '4px 8px',
+                        background: product.stockQuantity > 5 ? '#e8f5e9' : (product.stockQuantity > 0 ? '#fff3e0' : '#ffebee'),
+                        color: product.stockQuantity > 5 ? '#2e7d32' : (product.stockQuantity > 0 ? '#e65100' : '#c62828'),
+                        borderRadius: '12px',
+                        fontSize: '12px'
+                      }}>
+                        {product.stockQuantity} шт.
+                      </span>
+                    ) : (
+                      <span style={{ color: '#999', fontSize: '12px' }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '16px' }}>
+                    {product.popular ? (
+                      <span style={{ padding: '4px 12px', background: '#fff3e0', color: '#e65100', borderRadius: '12px', fontSize: '12px' }}>✓</span>
+                    ) : (
+                      <span style={{ padding: '4px 12px', background: '#f5f5f5', color: '#999', borderRadius: '12px', fontSize: '12px' }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '16px' }}>
+                    <span style={{
+                      padding: '4px 12px',
+                      background: product.inStock === 'both' ? '#fff3e0' : (product.inStock ? '#e8f5e9' : '#ffebee'),
+                      color: product.inStock === 'both' ? '#e65100' : (product.inStock ? '#2e7d32' : '#c62828'),
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      display: 'inline-block'
+                    }}>
+                      {product.inStock === 'both' ? 'Оба варианта' : (product.inStock ? 'В наличии' : 'Под заказ')}
+                    </span>
+                  </td>
+                  <td style={{ padding: '16px', textAlign: 'right' }}>
+                    <button 
+                      onClick={() => handleEdit(product)} 
+                      style={{
+                        padding: '6px 12px',
+                        background: '#f5f5f5',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        marginRight: '8px'
+                      }}
+                    >
+                      Редактировать
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(product.id)} 
+                      style={{
+                        padding: '6px 12px',
+                        background: '#ffebee',
+                        color: '#c62828',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      Удалить
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
@@ -544,49 +566,18 @@ console.log("SAVE CATEGORY:", formData.category);
             </div>
 
             {formData.inStockStatus === 'in_stock' && (
-  <div style={{ marginBottom: '16px' }}>
-    <label
-      style={{
-        display: 'block',
-        marginBottom: '8px',
-        fontSize: '14px',
-        color: '#333',
-      }}
-    >
-      Количество на складе
-    </label>
-
-    <input
-      type="number"
-      value={formData.stockQuantity}
-      onChange={(e) =>
-        setFormData({
-          ...formData,
-          stockQuantity: e.target.value,
-        })
-      }
-      placeholder="Оставьте пустым если не ограничено"
-      style={{
-        width: '100%',
-        padding: '12px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-      }}
-    />
-
-    <p
-      style={{
-        fontSize: '12px',
-        color: '#666',
-        marginTop: '4px',
-      }}
-    >
-      Например: 1, 5, 10. Оставьте пустым если товара много.
-    </p>
-  </div>
-)}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Количество на складе</label>
+                <input
+                  type="number"
+                  value={formData.stockQuantity}
+                  onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+                  placeholder="Оставьте пустым если не ограничено"
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Например: 1, 5, 10. Оставьте пустым если товара много.</p>
+              </div>
+            )}
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Описание</label>

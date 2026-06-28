@@ -145,14 +145,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Основной контент */}
-      <main className="admin-content" style={{
-        marginLeft: '260px',
-        flex: 1,
-        padding: '32px',
-        paddingTop: '32px',
-        width: '100%',
-        transition: 'margin-left 0.3s ease',
-      }}>
+     <main className="admin-content" style={{
+  marginLeft: '260px',
+  flex: 1,
+  minWidth: 0,
+  padding: '32px',
+}}>
         {children}
       </main>
     </div>
