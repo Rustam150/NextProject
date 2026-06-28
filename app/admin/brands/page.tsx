@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { mockBrands, Brand } from '@/lib/admin-data';
 
 export default function BrandsPage() {
-  const [brands, setBrands] = useState<Brand[]>(mockBrands);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [formData, setFormData] = useState({ name: '', country: '' });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('brands');
+
+    if (saved) {
+      setBrands(JSON.parse(saved));
+    } else {
+      setBrands(mockBrands);
+    }
+  }, []);
 
   const filteredBrands = brands.filter(b =>
     b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -19,13 +29,22 @@ export default function BrandsPage() {
     if (!formData.name.trim()) return;
 
     if (editingBrand) {
-      setBrands(brands.map(b => b.id === editingBrand.id ? { ...b, ...formData } : b));
+      const updated = brands.map(b =>
+        b.id === editingBrand.id ? { ...b, ...formData } : b
+      );
+
+      setBrands(updated);
+      localStorage.setItem('brands', JSON.stringify(updated));
     } else {
       const newBrand: Brand = {
         id: Math.max(...brands.map(b => b.id), 0) + 1,
         ...formData,
       };
-      setBrands([...brands, newBrand]);
+
+      const updated = [...brands, newBrand];
+
+      setBrands(updated);
+      localStorage.setItem('brands', JSON.stringify(updated));
     }
 
     setShowModal(false);

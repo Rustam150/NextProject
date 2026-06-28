@@ -40,6 +40,7 @@ const MATERIAL_OPTIONS = [
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -57,7 +58,18 @@ export default function ProductsPage() {
   useEffect(() => {
     loadProducts();
     loadCategories();
+    loadBrands();
   }, []);
+
+  const loadBrands = () => {
+  const saved = localStorage.getItem('brands');
+
+  if (saved) {
+    setBrands(JSON.parse(saved));
+  } else {
+    setBrands(mockBrands); // если есть дефолтные
+  }
+};
 
   const loadProducts = async () => {
     setLoading(true);
@@ -471,7 +483,7 @@ console.log("SAVE CATEGORY:", formData.category);
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Бренд</label>
               <select value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
                 <option value="">Выберите бренд</option>
-                {mockBrands.map(brand => <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>)}
+                {brands.map(brand => <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>)}
               </select>
             </div>
 

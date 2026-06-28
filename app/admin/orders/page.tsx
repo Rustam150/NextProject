@@ -40,6 +40,34 @@ interface Order {
 }
 
 export default function OrdersPage() {
+
+  const confirmOrder = (order: any) => {
+  const products = JSON.parse(localStorage.getItem('products') || '[]');
+
+  const updatedProducts = products.map((p: any) => {
+    const orderItem = order.items.find((i: any) => i.id === p.id);
+
+    if (!orderItem) return p;
+
+    return {
+      ...p,
+      stockQuantity: Math.max(
+        0,
+        (p.stockQuantity || 0) - orderItem.qty
+      ),
+    };
+  });
+
+  localStorage.setItem('products', JSON.stringify(updatedProducts));
+
+  updateOrder(order.id, {
+    status: 'completed'
+  });
+
+  alert('Заказ подтверждён');
+};
+
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
   const [search, setSearch] = useState('');
@@ -294,6 +322,10 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
             <div key={order.id} style={{ background: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
+
+            
+
+
   <div
     style={{
       display: 'flex',
@@ -452,8 +484,25 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
               {order.items.some(i => i.price) && (
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #eee', textAlign: 'right', fontSize: '16px', fontWeight: 600 }}>
                   Итого: {order.items.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0).toLocaleString()} ₽
+                   <button
+      onClick={() => confirmOrder(order)}
+      style={{
+        marginTop: '12px',
+        padding: '10px',
+        width: '100%',
+        background: '#2e7d32',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: 600
+      }}
+    >
+      Подтвердить заказ
+    </button>
                 </div>
               )}
+              
             </div>
           ))}
         </div>
