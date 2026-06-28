@@ -86,12 +86,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }}>
         <div style={{ padding: '0 24px 24px', borderBottom: '1px solid #333' }}>
           <h2 style={{
-            fontFamily: 'Cormorant Garamond, serif',
-            fontSize: '24px',
-            margin: 0,
-          }}>
-            HERMITAGE<span style={{ color: '#b89968' }}>DECOR</span>
-          </h2>
+  fontFamily: 'Cormorant Garamond, serif',
+  fontSize: '24px',
+  margin: 0,
+}}>
+  HERMITAGE
+</h2>
           <p style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
             Админ-панель
           </p>

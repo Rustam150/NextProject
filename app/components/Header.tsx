@@ -53,7 +53,7 @@ export default function Header({ variant = 'solid' }: { variant?: 'solid' | 'her
       <header className={headerClass}>
         <div className="site-header__inner">
           <BurgerMenu />
-          <Link href="/" className="logo">HERMITAGE<span>DECOR</span></Link>
+          <Link href="/" className="logo">HERMITAGE</Link>
           <div className="header-actions">
             <button
               className="icon-btn"
