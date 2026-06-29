@@ -1,5 +1,5 @@
 'use client';
-
+import { showToast } from '@/lib/toast';
 import { useState, useEffect } from 'react';
 import { Product, mockBrands } from '@/lib/admin-data';
 
@@ -245,7 +245,7 @@ export default function ProductsPage() {
   };
 
   const handleSave = () => {
-    if (!formData.name.trim()) { alert('Введите название товара'); return; }
+    if (!formData.name.trim()) { showToast('Введите название товара', 'error'); return; }
     const price = Number(formData.price) || 0;
 
     const finalColor = formData.color === 'Другой' ? formData.customColor : formData.color;
@@ -391,16 +391,19 @@ export default function ProductsPage() {
                       <span style={{ padding: '4px 12px', background: '#f5f5f5', color: '#999', borderRadius: '12px', fontSize: '12px' }}>—</span>
                     )}
                   </td>
-                  <td style={{ padding: '16px' }}>
+                                    <td style={{ padding: '16px' }}>
                     <span style={{
                       padding: '4px 12px',
-                      background: product.inStock === 'both' ? '#fff3e0' : (product.inStock ? '#e8f5e9' : '#ffebee'),
-                      color: product.inStock === 'both' ? '#e65100' : (product.inStock ? '#2e7d32' : '#c62828'),
+                      background: product.inStock === 'preorder' ? '#fff3e0' : 
+                                  product.inStock === true ? '#e8f5e9' : '#ffebee',
+                      color: product.inStock === 'preorder' ? '#e65100' : 
+                             product.inStock === true ? '#2e7d32' : '#c62828',
                       borderRadius: '12px',
                       fontSize: '12px',
                       display: 'inline-block'
                     }}>
-                      {product.inStock === 'both' ? 'Оба варианта' : (product.inStock ? 'В наличии' : 'Под заказ')}
+                      {product.inStock === 'preorder' ? 'Под заказ' : 
+                       product.inStock === true ? 'В наличии' : 'Нет в наличии'}
                     </span>
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right' }}>

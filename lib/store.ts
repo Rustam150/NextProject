@@ -1,3 +1,5 @@
+import { HERMITAGE } from './data';
+
 const Storage = {
   get<T>(key: string, fallback: T): T {
     try {
@@ -90,6 +92,34 @@ export const Store = {
     Store.updateBadges();
   },
 
+  getProducts() {
+  // Сначала проверяем products (старый ключ, там больше данных)
+  const oldProducts = Storage.get<any[] | null>('products', null);
+  if (oldProducts && oldProducts.length > 0) {
+    // Мигрируем в hd_products
+    Storage.set('hd_products', oldProducts);
+    return oldProducts;
+  }
+  
+  // Потом hd_products
+  const hdProducts = Storage.get<any[] | null>('hd_products', null);
+  if (hdProducts && hdProducts.length > 0) {
+    return hdProducts;
+  }
+  
+  // Если ничего нет — берём из data.ts
+  return HERMITAGE.products;
+},
+
+  setProducts(products: any[]) {
+    // Сохраняем в ОБО ключа чтобы админка и каталог видели одни данные
+    Storage.set('hd_products', products);
+    Storage.set('products', products);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
+  },
+
   updateBadges() {
     const cart = Store.cart();
     const fav = Store.favorites();
@@ -148,5 +178,18 @@ export const Store = {
 
   isInCompare(id: string): boolean {
     return Store.compare().includes(id);
+  },
+
+  subscribeToProducts(callback: () => void) {
+    if (typeof window === 'undefined') return () => {};
+    
+    const handler = () => callback();
+    window.addEventListener('storage', handler);
+    window.addEventListener('products:update', handler);
+    
+    return () => {
+      window.removeEventListener('storage', handler);
+      window.removeEventListener('products:update', handler);
+    };
   },
 };

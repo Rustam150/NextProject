@@ -462,6 +462,7 @@ export function formatPrice(n: number): string {
 }
 
 export interface Product {
+  stockQuantity?: number;
   id: string;
   name: string;
   price: number;

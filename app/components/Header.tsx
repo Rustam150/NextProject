@@ -23,20 +23,27 @@ export default function Header({ variant = 'solid' }: { variant?: 'solid' | 'her
   }, []);
 
   useEffect(() => {
-    const update = () => {
-      setCartCount(Store.cart().length);
-      setFavCount(Store.favorites().length);
-    };
+  const update = () => {
+    setCartCount(Store.cart().length);
+    setFavCount(Store.favorites().length);
+  };
+  
+  update();
+  
+  const prev = (window as any).__storeUpdate;
+  (window as any).__storeUpdate = () => {
     update();
-    const prev = (window as any).__storeUpdate;
-    (window as any).__storeUpdate = () => {
-      update();
-      if (prev) prev();
-    };
-    return () => {
-      (window as any).__storeUpdate = prev;
-    };
-  }, []);
+    if (prev) prev();
+  };
+
+  // Добавляем слушатель события storage
+  window.addEventListener('storage', update);
+
+  return () => {
+    (window as any).__storeUpdate = prev;
+    window.removeEventListener('storage', update);
+  };
+}, []);
 
   useEffect(() => {
     if (searchOpen) {

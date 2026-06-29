@@ -1,5 +1,5 @@
 'use client';
-
+import { showToast } from '@/lib/toast';
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -43,6 +43,7 @@ const product = id
   const [activeTab, setActiveTab] = useState('desc');
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [orderForm, setOrderForm] = useState({
   firstName: '',
@@ -94,18 +95,21 @@ const product = id
   }
 
   const toggleFav = () => {
-    const next = Store.toggleFavorite(String(product.id));
-    setIsFav(next);
-  };
+  const next = Store.toggleFavorite(String(product.id));
+  setIsFav(next);
+  window.dispatchEvent(new Event('storage'));
+};
 
-  const toggleCompare = () => {
-    const next = Store.toggleCompare(String(product.id));
-    setIsInCompare(next);
-  };
+const toggleCompare = () => {
+  const next = Store.toggleCompare(String(product.id));
+  setIsInCompare(next);
+  window.dispatchEvent(new Event('storage'));
+};
 
-  const addToCart = () => {
-    Store.addToCart(String(product.id));
-  };
+const addToCart = () => {
+  Store.addToCart(String(product.id));
+  window.dispatchEvent(new Event('storage'));
+};
 
   const handleOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +135,7 @@ const product = id
       comment: orderForm.comment,
     });
 
-    alert('Заявка успешно отправлена! Менеджер свяжется с вами в ближайшее время.');
+    showToast('Заявка успешно отправлена! Менеджер свяжется с вами в ближайшее время.', 'success');
     setShowOrderModal(false);
     setOrderForm({
   firstName: '',
@@ -160,33 +164,34 @@ const product = id
       setShowLoginModal(false);
       setShowOrderModal(true);
     } else {
-      alert('Неверный email или пароль');
+      showToast('Неверный email или пароль', 'error');
     }
   };
 
   const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-    
-    const newUser = {
-      id: Date.now(),
-      firstName: formData.get('firstName') as string,
-      lastName: formData.get('lastName') as string,
-      email: formData.get('email') as string,
-      phone: formData.get('phone') as string,
-      password: formData.get('password') as string,
-    };
-
-    const users = JSON.parse(localStorage.getItem('hd_users') || '[]');
-    users.push(newUser);
-    localStorage.setItem('hd_users', JSON.stringify(users));
-    
-    Store.setUser(newUser);
-    setCurrentUser(newUser);
-    setShowLoginModal(false);
-    alert('Регистрация успешна!');
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  const formData = new FormData(form);
+  
+  const newUser = {
+    id: Date.now(),
+    firstName: formData.get('firstName') as string,
+    lastName: formData.get('lastName') as string,
+    email: formData.get('email') as string,
+    phone: formData.get('phone') as string,
+    password: formData.get('password') as string,
   };
+
+  const users = JSON.parse(localStorage.getItem('hd_users') || '[]');
+  users.push(newUser);
+  localStorage.setItem('hd_users', JSON.stringify(users));
+  
+  Store.setUser(newUser);
+  setCurrentUser(newUser);
+  setShowRegisterModal(false); // ← закрываем окно регистрации
+  setShowOrderModal(true);     // ← открываем окно оформления заявки
+  showToast('Регистрация успешна!', 'success');
+};
 
   const similar = HERMITAGE_DATA.products
     .filter((p: any) => p.id !== product.id && (p.category === product.category || p.factory === product.factory))
@@ -216,15 +221,23 @@ const product = id
  const getAvailabilityColor = () => {
   const p = product as any;
 
+  // Под заказ - оранжевый
+  if (p.inStock === 'preorder') {
+    return '#e65100';
+  }
+
+  // Нет в наличии - красный
   if (p.inStock === false || p.stockQuantity === 0) {
-    return '#c62828'; // красный
+    return '#c62828';
   }
 
+  // Мало товара - оранжевый
   if (p.stockQuantity != null && p.stockQuantity <= 5) {
-    return '#e65100'; // оранжевый
+    return '#e65100';
   }
 
-  return '#2e7d32'; // зеленый
+  // В наличии - зеленый
+  return '#2e7d32';
 };
 
   return (
@@ -376,13 +389,14 @@ const product = id
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '16px' }}>
             <p className="product-info__price" style={{ margin: 0 }}>{formatPrice(product.price)}</p>
             <span style={{
-              padding: '6px 14px',
-              background: getAvailabilityColor() === '#2e7d32' ? '#e8f5e9' : (getAvailabilityColor() === '#e65100' ? '#fff3e0' : '#ffebee'),
-              color: getAvailabilityColor(),
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: 500,
-            }}>
+  padding: '6px 14px',
+  background: getAvailabilityColor() === '#2e7d32' ? '#e8f5e9' : 
+             getAvailabilityColor() === '#e65100' ? '#fff3e0' : '#ffebee',
+  color: getAvailabilityColor(),
+  borderRadius: '20px',
+  fontSize: '13px',
+  fontWeight: 500,
+}}>
               {getAvailabilityText()}
             </span>
           </div>
@@ -486,7 +500,10 @@ const product = id
                   <button onClick={() => setShowLoginModal(true)} className="btn btn--primary" style={{ flex: 1 }}>
                     Войти
                   </button>
-                  <button onClick={() => alert('Обратитесь к администратору для регистрации')} className="btn btn--outline" style={{ flex: 1 }}>
+                  <button onClick={() => {
+                    setShowLoginModal(false);
+                    setShowRegisterModal(true);
+                  }} className="btn btn--outline" style={{ flex: 1 }}>
                     Регистрация
                   </button>
                 </div>
@@ -683,6 +700,105 @@ const product = id
           </div>
         </div>
       )}
+
+      {/* Модальное окно регистрации */}
+{showRegisterModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3000,
+    padding: '16px',
+  }} onClick={() => setShowRegisterModal(false)}>
+    <div style={{
+      background: '#fff',
+      padding: '32px',
+      borderRadius: '8px',
+      width: '100%',
+      maxWidth: '400px',
+    }} onClick={(e) => e.stopPropagation()}>
+      <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', margin: '0 0 24px 0' }}>
+        Регистрация
+      </h2>
+      <form onSubmit={handleRegister}>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+            Имя
+          </label>
+          <input
+            name="firstName"
+            type="text"
+            required
+            style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+            Фамилия
+          </label>
+          <input
+            name="lastName"
+            type="text"
+            required
+            style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+            Email
+          </label>
+          <input
+            name="email"
+            type="email"
+            required
+            style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+            Телефон
+          </label>
+          <input
+            name="phone"
+            type="tel"
+            required
+            style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>
+            Пароль
+          </label>
+          <input
+            name="password"
+            type="password"
+            required
+            style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button type="submit" className="btn btn--primary" style={{ flex: 1 }}>
+            Зарегистрироваться
+          </button>
+          <button type="button" onClick={() => setShowRegisterModal(false)} className="btn btn--outline" style={{ flex: 1 }}>
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
 
       {similar.length > 0 && (
         <section className="section" style={{ background: 'var(--white)' }}>

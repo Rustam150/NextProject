@@ -26,6 +26,35 @@ export default function ProductCard({ product }: { product: Product }) {
       ? <span className="badge badge--sale">Акция</span>
       : null;
 
+  // Определяем доступность товара
+  const getAvailabilityInfo = () => {
+    // Если есть stockQuantity — проверяем его
+    if (product.stockQuantity !== undefined && product.stockQuantity !== null) {
+      if (product.stockQuantity === 0) {
+        return { text: 'Нет в наличии', className: 'out', showButton: false };
+      } else if (product.stockQuantity <= 5) {
+        return { 
+          text: `Осталось ${product.stockQuantity} шт.`, 
+          className: 'order', 
+          showButton: true 
+        };
+      } else {
+        return { text: 'В наличии', className: 'in', showButton: true };
+      }
+    }
+    
+    // Если нет stockQuantity — проверяем inStock
+    if (product.inStock === 'preorder') {
+      return { text: 'Под заказ', className: 'order', showButton: true };
+    } else if (product.inStock === false) {
+      return { text: 'Нет в наличии', className: 'out', showButton: false };
+    } else {
+      return { text: 'В наличии', className: 'in', showButton: true };
+    }
+  };
+
+  const availability = getAvailabilityInfo();
+
   return (
     <article className="product-card" data-id={product.id}>
       <Link href={`/product?id=${product.id}`} className="product-card__media">
@@ -47,29 +76,33 @@ export default function ProductCard({ product }: { product: Product }) {
           <Link href={`/product?id=${product.id}`}>{product.name}</Link>
         </h3>
         <p className="product-card__meta">
-  {product.country} · {product.factory}
-</p>
+          {product.country} · {product.factory}
+        </p>
 
-<p
-  className={`product-card__availability ${
-    product.inStock === false
-      ? 'out'
-      : product.inStock === 'preorder'
-      ? 'order'
-      : 'in'
-  }`}
->
-  {product.inStock === false
-    ? 'Нет в наличии'
-    : product.inStock === 'preorder'
-    ? 'Под заказ'
-    : 'В наличии'}
-</p>
+        <p className={`product-card__availability ${availability.className}`}>
+          {availability.text}
+        </p>
 
-<p className="product-card__price">
-  {formatPrice(product.price)}
-</p>
-        <Link href={`/product?id=${product.id}`} className="btn btn--outline btn--sm">Подробнее</Link>
+        <p className="product-card__price">
+          {formatPrice(product.price)}
+        </p>
+
+        {availability.showButton ? (
+          <Link
+            href={`/product?id=${product.id}`}
+            className="btn btn--outline btn--sm"
+          >
+            Подробнее
+          </Link>
+        ) : (
+          <button
+            className="btn btn--outline btn--sm"
+            disabled
+            style={{ opacity: 0.5, cursor: 'not-allowed' }}
+          >
+            Нет в наличии
+          </button>
+        )}
       </div>
     </article>
   );

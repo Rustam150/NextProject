@@ -1,5 +1,5 @@
 'use client';
-
+import { showToast } from '@/lib/toast';
 import { useEffect, useState } from 'react';
 import { Store } from '@/lib/store';
 
@@ -40,43 +40,49 @@ interface Order {
 }
 
 export default function OrdersPage() {
-
-  const confirmOrder = (order: any) => {
-  const products = JSON.parse(localStorage.getItem('products') || '[]');
-
-  const updatedProducts = products.map((p: any) => {
-    const orderItem = order.items.find((i: any) => i.id === p.id);
-
-    if (!orderItem) return p;
-
-    return {
-      ...p,
-      stockQuantity: Math.max(
-        0,
-        (p.stockQuantity || 0) - orderItem.qty
-      ),
-    };
-  });
-
-  localStorage.setItem('products', JSON.stringify(updatedProducts));
-
-  updateOrder(order.id, {
-    status: 'completed'
-  });
-
-  alert('Заказ подтверждён');
-};
-
-
   const [orders, setOrders] = useState<Order[]>([]);
   const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
   const [search, setSearch] = useState('');
+
   useEffect(() => {
     const saved = localStorage.getItem('hd_orders');
     if (saved) {
       setOrders(JSON.parse(saved));
     }
   }, []);
+
+ const confirmOrder = (order: any) => {
+  const products = Store.getProducts();
+
+  const updatedProducts = products.map((p: any) => {
+    const orderItem = order.items.find((i: any) => i.name === p.name);
+    if (!orderItem) return p;
+
+    const currentQty = p.stockQuantity ?? 0;
+    const newQty = currentQty - orderItem.qty;
+
+    return {
+      ...p,
+      stockQuantity: newQty > 0 ? newQty : 0,
+    };
+  });
+
+  Store.setProducts(updatedProducts);
+
+  const orders = Store.orders().map((o) =>
+    o.id === order.id
+      ? { ...o, status: 'completed' as const }
+      : o
+  );
+
+  localStorage.setItem('hd_orders', JSON.stringify(orders));
+  setOrders(orders); // ← это обновит список заказов сразу
+
+  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new Event('products:update'));
+
+  showToast('Заказ подтверждён', 'success');
+};
 
   const deleteOrder = (id: number) => {
     if (confirm('Удалить заказ?')) {
@@ -124,35 +130,35 @@ export default function OrdersPage() {
     cancelled: '#c62828',
   };
 
-const newCount = orders.filter(o => o.status === 'new').length;
-const processingCount = orders.filter(o => o.status === 'processing').length;
-const approvedCount = orders.filter(o => o.status === 'approved').length;
-const paidCount = orders.filter(o => o.status === 'paid').length;
-const deliveryCount = orders.filter(o => o.status === 'delivery').length;
-const completedCount = orders.filter(o => o.status === 'completed').length;
-const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
+  const newCount = orders.filter(o => o.status === 'new').length;
+  const processingCount = orders.filter(o => o.status === 'processing').length;
+  const approvedCount = orders.filter(o => o.status === 'approved').length;
+  const paidCount = orders.filter(o => o.status === 'paid').length;
+  const deliveryCount = orders.filter(o => o.status === 'delivery').length;
+  const completedCount = orders.filter(o => o.status === 'completed').length;
+  const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
 
   const filteredOrders = orders
-  .filter((order) => {
-    const matchesStatus =
-      filterStatus === 'all'
-        ? true
-        : order.status === filterStatus;
+    .filter((order) => {
+      const matchesStatus =
+        filterStatus === 'all'
+          ? true
+          : order.status === filterStatus;
 
-    const searchText = search.toLowerCase();
+      const searchText = search.toLowerCase();
 
-    const matchesSearch =
-      `${order.firstName} ${order.lastName}`
-        .toLowerCase()
-        .includes(searchText) ||
-      order.phone.toLowerCase().includes(searchText);
+      const matchesSearch =
+        `${order.firstName} ${order.lastName}`
+          .toLowerCase()
+          .includes(searchText) ||
+        order.phone.toLowerCase().includes(searchText);
 
-    return matchesStatus && matchesSearch;
-  })
-  .sort(
-    (a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+      return matchesStatus && matchesSearch;
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
   return (
     <div>
@@ -166,151 +172,150 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
       </div>
 
       <input
-  type="text"
-  placeholder="Поиск по имени или телефону..."
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  style={{
-    width: '100%',
-    padding: '12px',
-    marginBottom: '16px',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '14px',
-  }}
-/>
+        type="text"
+        placeholder="Поиск по имени или телефону..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '12px',
+          marginBottom: '16px',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          fontSize: '14px',
+        }}
+      />
 
       <div
-  style={{
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-    marginBottom: '24px',
-  }}
->
-  <button
-    onClick={() => setFilterStatus('all')}
-    style={{
-      padding: '8px 14px',
-      borderRadius: '20px',
-      border: 'none',
-      cursor: 'pointer',
-      background: filterStatus === 'all' ? '#111' : '#eee',
-      color: filterStatus === 'all' ? '#fff' : '#111',
-    }}
-  >
-    Все ({orders.length})
-  </button>
+        style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+          marginBottom: '24px',
+        }}
+      >
+        <button
+          onClick={() => setFilterStatus('all')}
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            background: filterStatus === 'all' ? '#111' : '#eee',
+            color: filterStatus === 'all' ? '#fff' : '#111',
+          }}
+        >
+          Все ({orders.length})
+        </button>
 
-  <button
-    onClick={() => setFilterStatus('new')}
-    style={{
-      padding: '8px 14px',
-      borderRadius: '20px',
-      border: 'none',
-      cursor: 'pointer',
-      background: filterStatus === 'new' ? '#1976d2' : '#eee',
-      color: filterStatus === 'new' ? '#fff' : '#111',
-    }}
-  >
-    Новые ({newCount})
-  </button>
+        <button
+          onClick={() => setFilterStatus('new')}
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            background: filterStatus === 'new' ? '#1976d2' : '#eee',
+            color: filterStatus === 'new' ? '#fff' : '#111',
+          }}
+        >
+          Новые ({newCount})
+        </button>
 
-  <button
-    onClick={() => setFilterStatus('processing')}
-    style={{
-      padding: '8px 14px',
-      borderRadius: '20px',
-      border: 'none',
-      cursor: 'pointer',
-      background: filterStatus === 'processing' ? '#f57c00' : '#eee',
-      color: filterStatus === 'processing' ? '#fff' : '#111',
-    }}
-  >
-    В обработке ({processingCount})
-  </button>
+        <button
+          onClick={() => setFilterStatus('processing')}
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            background: filterStatus === 'processing' ? '#f57c00' : '#eee',
+            color: filterStatus === 'processing' ? '#fff' : '#111',
+          }}
+        >
+          В обработке ({processingCount})
+        </button>
 
-  <button
-    onClick={() => setFilterStatus('delivery')}
-    style={{
-      padding: '8px 14px',
-      borderRadius: '20px',
-      border: 'none',
-      cursor: 'pointer',
-      background: filterStatus === 'delivery' ? '#00838f' : '#eee',
-      color: filterStatus === 'delivery' ? '#fff' : '#111',
-    }}
-  >
-    В доставке ({deliveryCount})
-  </button>
+        <button
+          onClick={() => setFilterStatus('delivery')}
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            background: filterStatus === 'delivery' ? '#00838f' : '#eee',
+            color: filterStatus === 'delivery' ? '#fff' : '#111',
+          }}
+        >
+          В доставке ({deliveryCount})
+        </button>
 
-  <button
-    onClick={() => setFilterStatus('completed')}
-    style={{
-      padding: '8px 14px',
-      borderRadius: '20px',
-      border: 'none',
-      cursor: 'pointer',
-      background: filterStatus === 'completed' ? '#388e3c' : '#eee',
-      color: filterStatus === 'completed' ? '#fff' : '#111',
-    }}
-  >
-    Завершённые ({completedCount})
-  </button>
+        <button
+          onClick={() => setFilterStatus('completed')}
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
+            background: filterStatus === 'completed' ? '#388e3c' : '#eee',
+            color: filterStatus === 'completed' ? '#fff' : '#111',
+          }}
+        >
+          Завершённые ({completedCount})
+        </button>
 
-    <button
-  onClick={() => setFilterStatus('cancelled')}
-  style={{
-    padding: '8px 14px',
-    border: 'none',
-    borderRadius: '20px',
-    cursor: 'pointer',
-    background:
-      filterStatus === 'cancelled'
-        ? '#111'
-        : '#eee',
-    color:
-      filterStatus === 'cancelled'
-        ? '#fff'
-        : '#111'
-  }}
->
-  Отменённые ({cancelledCount})
-</button>
+        <button
+          onClick={() => setFilterStatus('cancelled')}
+          style={{
+            padding: '8px 14px',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            background:
+              filterStatus === 'cancelled'
+                ? '#111'
+                : '#eee',
+            color:
+              filterStatus === 'cancelled'
+                ? '#fff'
+                : '#111'
+          }}
+        >
+          Отменённые ({cancelledCount})
+        </button>
 
-<button
-  onClick={() => setFilterStatus('approved')}
-  style={{
-    padding: '8px 14px',
-    border: 'none',
-    borderRadius: '20px',
-    cursor: 'pointer',
-    background:
-      filterStatus === 'approved' ? '#111' : '#eee',
-    color:
-      filterStatus === 'approved' ? '#fff' : '#111'
-  }}
->
-  Согласованные ({approvedCount})
-</button>
+        <button
+          onClick={() => setFilterStatus('approved')}
+          style={{
+            padding: '8px 14px',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            background:
+              filterStatus === 'approved' ? '#111' : '#eee',
+            color:
+              filterStatus === 'approved' ? '#fff' : '#111'
+          }}
+        >
+          Согласованные ({approvedCount})
+        </button>
 
-<button
-  onClick={() => setFilterStatus('paid')}
-  style={{
-    padding: '8px 14px',
-    border: 'none',
-    borderRadius: '20px',
-    cursor: 'pointer',
-    background:
-      filterStatus === 'paid' ? '#111' : '#eee',
-    color:
-      filterStatus === 'paid' ? '#fff' : '#111'
-  }}
->
-  Оплаченные ({paidCount})
-</button>
-  
-</div>
+        <button
+          onClick={() => setFilterStatus('paid')}
+          style={{
+            padding: '8px 14px',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            background:
+              filterStatus === 'paid' ? '#111' : '#eee',
+            color:
+              filterStatus === 'paid' ? '#fff' : '#111'
+          }}
+        >
+          Оплаченные ({paidCount})
+        </button>
+      </div>
 
       {orders.length === 0 ? (
         <div style={{ background: '#fff', padding: '40px', borderRadius: '8px', textAlign: 'center', color: '#666' }}>
@@ -322,53 +327,49 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
             <div key={order.id} style={{ background: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      flexWrap: 'wrap',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontFamily: 'Cormorant Garamond, serif',
+                        fontSize: '20px',
+                      }}
+                    >
+                      Заказ №{filteredOrders.length - index}
+                    </h3>
 
-            
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#fff',
+                        background: statusColors[order.status],
+                      }}
+                    >
+                      {statusLabels[order.status]}
+                    </span>
+                  </div>
 
-
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      flexWrap: 'wrap',
-      marginBottom: '8px',
-    }}
-  >
-    <h3
-      style={{
-        margin: 0,
-        fontFamily: 'Cormorant Garamond, serif',
-        fontSize: '20px',
-      }}
-    >
-      Заказ №{filteredOrders.length - index}
-    </h3>
-
-    <span
-      style={{
-        padding: '4px 10px',
-        borderRadius: '999px',
-        fontSize: '12px',
-        fontWeight: 600,
-        color: '#fff',
-        background: statusColors[order.status],
-      }}
-    >
-      {statusLabels[order.status]}
-    </span>
-  </div>
-
-  <p
-    style={{
-      margin: 0,
-      fontSize: '13px',
-      color: '#666',
-    }}
-  >
-    {new Date(order.date).toLocaleString('ru-RU')}
-  </p>
-</div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '13px',
+                      color: '#666',
+                    }}
+                  >
+                    {new Date(order.date).toLocaleString('ru-RU')}
+                  </p>
+                </div>
                 <button
                   onClick={() => deleteOrder(order.id)}
                   style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
@@ -389,83 +390,83 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
                   )}
 
                   {order.deliveryType && (
-  <p style={{ margin: '4px 0', fontSize: '14px' }}>
-    <strong>Способ получения:</strong>{' '}
-    {order.deliveryType === 'pickup'
-      ? 'Самовывоз'
-      : 'Доставка'}
-  </p>
-)}
+                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                      <strong>Способ получения:</strong>{' '}
+                      {order.deliveryType === 'pickup'
+                        ? 'Самовывоз'
+                        : 'Доставка'}
+                    </p>
+                  )}
 
-{order.deliveryType === 'delivery' && order.address && (
-  <p style={{ margin: '4px 0', fontSize: '14px' }}>
-    <strong>Адрес доставки:</strong> {order.address}
-  </p>
-)}
+                  {order.deliveryType === 'delivery' && order.address && (
+                    <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                      <strong>Адрес доставки:</strong> {order.address}
+                    </p>
+                  )}
                 </div>
               )}
 
-{order.comment && (
-  <div
-    style={{
-      marginBottom: '16px',
-      padding: '12px',
-      background: '#fff8e1',
-      borderRadius: '8px',
-      border: '1px solid #ffe082'
-    }}
-  >
-    <strong>Комментарий клиента:</strong>
+              {order.comment && (
+                <div
+                  style={{
+                    marginBottom: '16px',
+                    padding: '12px',
+                    background: '#fff8e1',
+                    borderRadius: '8px',
+                    border: '1px solid #ffe082'
+                  }}
+                >
+                  <strong>Комментарий клиента:</strong>
 
-    <div style={{ marginTop: '6px' }}>
-      {order.comment}
-    </div>
-  </div>
-)}
+                  <div style={{ marginTop: '6px' }}>
+                    {order.comment}
+                  </div>
+                </div>
+              )}
 
-<div
-  style={{
-    marginBottom: '16px',
-    padding: '12px',
-    background: '#fafafa',
-    borderRadius: '8px',
-    border: '1px solid #eee'
-  }}
->
-  <p
-    style={{
-      margin: '0 0 8px 0',
-      fontSize: '13px',
-      color: '#666',
-      textTransform: 'uppercase'
-    }}
-  >
-    Статус заказа
-  </p>
+              <div
+                style={{
+                  marginBottom: '16px',
+                  padding: '12px',
+                  background: '#fafafa',
+                  borderRadius: '8px',
+                  border: '1px solid #eee'
+                }}
+              >
+                <p
+                  style={{
+                    margin: '0 0 8px 0',
+                    fontSize: '13px',
+                    color: '#666',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  Статус заказа
+                </p>
 
-  <select
-    value={order.status}
-    onChange={(e) =>
-      updateOrder(order.id, {
-        status: e.target.value as Order['status']
-      })
-    }
-    style={{
-      width: '100%',
-      padding: '10px',
-      borderRadius: '6px',
-      border: '1px solid #ddd'
-    }}
-  >
-    <option value="new">Новый</option>
-    <option value="processing">В обработке</option>
-    <option value="approved">Согласован</option>
-    <option value="paid">Оплачен</option>
-    <option value="delivery">В доставке</option>
-    <option value="completed">Завершён</option>
-    <option value="cancelled">Отменён</option>
-  </select>
-</div>
+                <select
+                  value={order.status}
+                  onChange={(e) =>
+                    updateOrder(order.id, {
+                      status: e.target.value as Order['status']
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    border: '1px solid #ddd'
+                  }}
+                >
+                  <option value="new">Новый</option>
+                  <option value="processing">В обработке</option>
+                  <option value="approved">Согласован</option>
+                  <option value="paid">Оплачен</option>
+                  <option value="delivery">В доставке</option>
+                  <option value="completed">Завершён</option>
+                  <option value="cancelled">Отменён</option>
+                </select>
+              </div>
 
               <div>
                 <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#666', textTransform: 'uppercase' }}>Товары:</p>
@@ -479,30 +480,27 @@ const cancelledCount = orders.filter(o => o.status === 'cancelled').length;
                 </div>
               </div>
 
-              
-
               {order.items.some(i => i.price) && (
                 <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #eee', textAlign: 'right', fontSize: '16px', fontWeight: 600 }}>
                   Итого: {order.items.reduce((sum, item) => sum + (item.price || 0) * item.qty, 0).toLocaleString()} ₽
-                   <button
-      onClick={() => confirmOrder(order)}
-      style={{
-        marginTop: '12px',
-        padding: '10px',
-        width: '100%',
-        background: '#2e7d32',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 600
-      }}
-    >
-      Подтвердить заказ
-    </button>
+                  <button
+                    onClick={() => confirmOrder(order)}
+                    style={{
+                      marginTop: '12px',
+                      padding: '10px',
+                      width: '100%',
+                      background: '#2e7d32',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    Подтвердить заказ
+                  </button>
                 </div>
               )}
-              
             </div>
           ))}
         </div>
