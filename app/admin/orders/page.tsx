@@ -51,14 +51,21 @@ export default function OrdersPage() {
     }
   }, []);
 
- const confirmOrder = (order: any) => {
+const confirmOrder = (order: any) => {
   const products = Store.getProducts();
 
   const updatedProducts = products.map((p: any) => {
     const orderItem = order.items.find((i: any) => i.name === p.name);
     if (!orderItem) return p;
 
-    const currentQty = p.stockQuantity ?? 0;
+    // Если stockQuantity не задан (null/undefined) — не трогаем его
+    // Товар остается "В наличии" без ограничения количества
+    if (p.stockQuantity == null) {
+      return p;
+    }
+
+    // Если stockQuantity задан — уменьшаем
+    const currentQty = p.stockQuantity;
     const newQty = currentQty - orderItem.qty;
 
     return {
@@ -76,7 +83,7 @@ export default function OrdersPage() {
   );
 
   localStorage.setItem('hd_orders', JSON.stringify(orders));
-  setOrders(orders); // ← это обновит список заказов сразу
+  setOrders(orders);
 
   window.dispatchEvent(new Event('storage'));
   window.dispatchEvent(new Event('products:update'));

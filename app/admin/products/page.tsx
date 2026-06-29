@@ -370,20 +370,30 @@ export default function ProductsPage() {
                     {String(product.price)} ₽
                   </td>
                   <td style={{ padding: '16px', fontSize: '14px' }}>
-                    {product.stockQuantity != null ? (
-                      <span style={{
-                        padding: '4px 8px',
-                        background: product.stockQuantity > 5 ? '#e8f5e9' : (product.stockQuantity > 0 ? '#fff3e0' : '#ffebee'),
-                        color: product.stockQuantity > 5 ? '#2e7d32' : (product.stockQuantity > 0 ? '#e65100' : '#c62828'),
-                        borderRadius: '12px',
-                        fontSize: '12px'
-                      }}>
-                        {product.stockQuantity} шт.
-                      </span>
-                    ) : (
-                      <span style={{ color: '#999', fontSize: '12px' }}>—</span>
-                    )}
-                  </td>
+  {product.stockQuantity != null ? (
+    <span style={{
+      padding: '4px 8px',
+      background: product.stockQuantity > 5 ? '#e8f5e9' : 
+                  product.stockQuantity > 0 ? '#fff3e0' : '#ffebee',
+      color: product.stockQuantity > 5 ? '#2e7d32' : 
+             product.stockQuantity > 0 ? '#e65100' : '#c62828',
+      borderRadius: '12px',
+      fontSize: '12px'
+    }}>
+      {product.stockQuantity} шт.
+    </span>
+  ) : (
+    <span style={{
+      padding: '4px 8px',
+      background: '#e8f5e9',
+      color: '#2e7d32',
+      borderRadius: '12px',
+      fontSize: '12px'
+    }}>
+      В наличии
+    </span>
+  )}
+</td>
                   <td style={{ padding: '16px' }}>
                     {product.popular ? (
                       <span style={{ padding: '4px 12px', background: '#fff3e0', color: '#e65100', borderRadius: '12px', fontSize: '12px' }}>✓</span>
