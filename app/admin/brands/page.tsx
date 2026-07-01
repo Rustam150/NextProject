@@ -59,10 +59,12 @@ export default function BrandsPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Удалить бренд?')) {
-      setBrands(brands.filter(b => b.id !== id));
-    }
-  };
+  if (confirm('Удалить бренд?')) {
+    const updated = brands.filter(b => b.id !== id);
+    setBrands(updated);
+    localStorage.setItem('brands', JSON.stringify(updated));
+  }
+};
 
   return (
     <div>
