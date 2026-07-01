@@ -4,7 +4,7 @@ export default function Footer({ full = false }: { full?: boolean }) {
   if (!full) {
     return (
       <footer className="site-footer">
-        <div className="container footer-copy">© 2026 HERMITAGE DECOR</div>
+        <div className="container footer-copy">© 2026 HERMITAGE</div>
       </footer>
     );
   }
@@ -13,7 +13,7 @@ export default function Footer({ full = false }: { full?: boolean }) {
     <footer className="site-footer" id="footer">
       <div className="container footer-grid">
         <div>
-          <div className="footer-logo">HERMITAGE DECOR</div>
+          <div className="footer-logo">HERMITAGE</div>
           <div className="footer-contacts" style={{ marginTop: 20 }}>
             <p><a href="tel:+79001234567">+7 (900) 123-45-67</a></p>
             <p><a href="https://wa.me/79001234567" target="_blank" rel="noopener">WhatsApp</a></p>
@@ -34,7 +34,7 @@ export default function Footer({ full = false }: { full?: boolean }) {
           <Link href="/cart">Корзина</Link>
         </div>
       </div>
-      <div className="container footer-copy">© 2026 HERMITAGE DECOR. Все права защищены.</div>
+      <div className="container footer-copy">© 2026 HERMITAGE. Все права защищены.</div>
     </footer>
   );
 }

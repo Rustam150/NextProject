@@ -25,7 +25,7 @@ export default function Home() {
         </div>
         <div className="hero__overlay"></div>
         <div className="hero__content">
-          <h1 className="hero__title">HERMITAGE DECOR</h1>
+          <h1 className="hero__title">HERMITAGE</h1>
           <p className="hero__tagline">Мебель и предметы интерьера премиального качества</p>
           <div className="btn-group" style={{ justifyContent: "center" }}>
             <Link href="/catalog" className="btn btn--primary">Смотреть каталог</Link>
@@ -131,7 +131,7 @@ export default function Home() {
           </div>
           <div className="about-block__text">
             <p className="section__subtitle">О нас</p>
-            <h2 className="section__title">HERMITAGE DECOR</h2>
+            <h2 className="section__title">HERMITAGE</h2>
             <p>Мы — интерьерный бутик премиального сегмента. Представляем коллекции ведущих европейских и мировых фабрик, помогаем создавать пространства с характером и безупречным вкусом.</p>
             <p>Каждый предмет в нашем каталоге отобран вручную: от итальянских диванов до эксклюзивной мебели из Турции и Китая.</p>
             <div className="advantages">

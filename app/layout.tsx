@@ -3,8 +3,8 @@ import "./globals.css";
 import StoreProvider from "./components/StoreProvider";
 
 export const metadata: Metadata = {
-  title: "HERMITAGE DECOR — Премиальная мебель и интерьер",
-  description: "HERMITAGE DECOR — мебель и предметы интерьера премиального качества",
+  title: "HERMITAGE — Премиальная мебель и интерьер",
+  description: "HERMITAGE — мебель и предметы интерьера премиального качества",
 };
 
 export default function RootLayout({
