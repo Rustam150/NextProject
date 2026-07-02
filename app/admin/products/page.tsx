@@ -303,7 +303,7 @@ useEffect(() => {
       return p;
     });
     setProducts(updated);
-    localStorage.setItem('products', JSON.stringify(updated));
+Store.setProducts(updated);
   } else {
     const newProduct = {
       ...formData,
