@@ -93,21 +93,19 @@ export const Store = {
   },
 
   getProducts() {
-  // Сначала проверяем products (старый ключ, там больше данных)
-  const oldProducts = Storage.get<any[] | null>('products', null);
-  if (oldProducts && oldProducts.length > 0) {
-    // Мигрируем в hd_products
-    Storage.set('hd_products', oldProducts);
-    return oldProducts;
-  }
-  
-  // Потом hd_products
   const hdProducts = Storage.get<any[] | null>('hd_products', null);
+
   if (hdProducts && hdProducts.length > 0) {
     return hdProducts;
   }
-  
-  // Если ничего нет — берём из data.ts
+
+  const oldProducts = Storage.get<any[] | null>('products', null);
+
+  if (oldProducts && oldProducts.length > 0) {
+    Storage.set('hd_products', oldProducts);
+    return oldProducts;
+  }
+
   return HERMITAGE.products;
 },
 

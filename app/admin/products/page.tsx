@@ -1,4 +1,5 @@
 'use client';
+import { Store } from '@/lib/store';
 import { showToast } from '@/lib/toast';
 import { useState, useEffect } from 'react';
 import { Product, mockBrands } from '@/lib/admin-data';
@@ -112,39 +113,20 @@ export default function ProductsPage() {
   };
 
   const loadCategories = () => {
-    const saved = localStorage.getItem('categories');
-    const CATEGORY_NAME_TO_ID: Record<string, string> = {
-      'Спальня': 'bedroom',
-      'Гостиная': 'living',
-      'Столовая': 'dining',
-      'Кабинет': 'office',
-      'Кухня': 'kitchen',
-      'Прихожая': 'hallway',
-      'Детская': 'kids',
-      'Мягкая мебель': 'soft',
-      'Посуда': 'dishes',
-      'Ароматы': 'aromas',
-      'Текстиль': 'textile',
-    };
+  const saved = localStorage.getItem('categories');
 
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setCategories(
-        parsed.map((c: any) => ({
-          ...c,
-          id: CATEGORY_NAME_TO_ID[c.name] || String(c.id),
-        }))
-      );
-    } else {
-      setCategories(CATEGORIES);
-    }
-  };
+  if (saved) {
+    setCategories(JSON.parse(saved));
+  } else {
+    setCategories(CATEGORIES);
+  }
+};
 
-  useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem('products', JSON.stringify(products));
-    }
-  }, [products]);
+useEffect(() => {
+  if (products.length > 0) {
+    localStorage.setItem('products', JSON.stringify(products));
+  }
+}, [products]);
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -154,7 +136,7 @@ export default function ProductsPage() {
     if (confirm('Удалить товар?')) {
       const updated = products.filter(p => p.id !== id);
       setProducts(updated);
-      localStorage.setItem('products', JSON.stringify(updated));
+      Store.setProducts(updated);
     }
   };
 
@@ -244,65 +226,109 @@ export default function ProductsPage() {
     setFormData({ ...formData, images: newImages.length > 0 ? newImages : ['/images/p1.jpg'] });
   };
 
-  const handleSave = () => {
-    if (!formData.name.trim()) { showToast('Введите название товара', 'error'); return; }
-    const price = Number(formData.price) || 0;
+ const handleSave = () => {
 
-    const finalColor = formData.color === 'Другой' ? formData.customColor : formData.color;
-    const finalMaterial = formData.material === 'Другой' ? formData.customMaterial : formData.material;
-    const finalCountry = formData.country === 'Другая' ? formData.customCountry : formData.country;
+  if (!formData.name.trim()) {
+    showToast('Введите название товара', 'error');
+    return;
+  }
 
-    let inStockValue: boolean | string = true;
-    if (formData.inStockStatus === 'preorder') {
-      inStockValue = 'preorder';
-    } else if (formData.inStockStatus === 'out_of_stock') {
-      inStockValue = false;
-    }
+  if (!formData.category) {
+    showToast('Выберите категорию', 'error');
+    return;
+  }
 
-    if (editingProduct) {
-      const updated = products.map(p => {
-        if (p.id === editingProduct.id) {
-          return {
-            ...p,
-            ...formData,
-            price,
-            id: editingProduct.id,
-            factory: formData.brand,
-            images: formData.images,
-            inStock: inStockValue,
-            color: finalColor,
-            material: finalMaterial,
-            country: finalCountry,
-            stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
-          };
-        }
-        return p;
-      });
-      setProducts(updated);
-      localStorage.setItem('products', JSON.stringify(updated));
-    } else {
-      const newProduct = {
-        ...formData,
-        id: `p${Date.now()}`,
-        price,
-        factory: formData.brand,
-        images: formData.images,
-        isSale: formData.isSale,
-        sku: formData.sku || `SKU-${Date.now()}`,
-        sizes: formData.sizes,
-        material: finalMaterial,
-        color: finalColor,
-        country: finalCountry,
-        inStock: inStockValue,
-        stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
-      };
-      const updated = [...products, newProduct];
-      setProducts(updated);
-      localStorage.setItem('products', JSON.stringify(updated));
-    }
-    setShowModal(false);
-    setEditingProduct(null);
-  };
+  if (!formData.brand) {
+    showToast('Выберите бренд', 'error');
+    return;
+  }
+
+  const price = Number(formData.price) || 0;
+
+  if (price <= 0) {
+    showToast('Цена должна быть больше 0', 'error');
+    return;
+  }
+
+  if (
+    formData.inStockStatus === 'in_stock' &&
+    (formData.stockQuantity === '' || Number(formData.stockQuantity) < 0)
+  ) {
+    showToast('Количество на складе не может быть отрицательным', 'error');
+    return;
+  }
+
+  const finalColor =
+    formData.color === 'Другой' ? formData.customColor : formData.color;
+
+  const finalMaterial =
+    formData.material === 'Другой'
+      ? formData.customMaterial
+      : formData.material;
+
+  const finalCountry =
+    formData.country === 'Другая'
+      ? formData.customCountry
+      : formData.country;
+
+  let inStockValue: boolean | string = true;
+
+  if (formData.inStockStatus === 'preorder') {
+    inStockValue = 'preorder';
+  } else if (formData.inStockStatus === 'out_of_stock') {
+    inStockValue = false;
+  }
+
+  // дальше идёт твой код...
+
+  if (editingProduct) {
+    const updated = products.map(p => {
+      if (p.id === editingProduct.id) {
+        return {
+          ...p,
+          ...formData,
+          price,
+          id: editingProduct.id,
+          factory: formData.brand,
+          images: formData.images,
+          inStock: inStockValue,
+          color: finalColor,
+          material: finalMaterial,
+          country: finalCountry,
+          stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
+          // Убедимся что category сохранена
+          category: formData.category || '',
+        };
+      }
+      return p;
+    });
+    setProducts(updated);
+    localStorage.setItem('products', JSON.stringify(updated));
+  } else {
+    const newProduct = {
+      ...formData,
+      id: `p${Date.now()}`,
+      price,
+      factory: formData.brand,
+      images: formData.images,
+      isSale: formData.isSale,
+      sku: formData.sku || `SKU-${Date.now()}`,
+      sizes: formData.sizes,
+      material: finalMaterial,
+      color: finalColor,
+      country: finalCountry,
+      inStock: inStockValue,
+      stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
+      // Убедимся что category сохранена
+      category: formData.category || '',
+    };
+    const updated = [...products, newProduct];
+    setProducts(updated);
+    Store.setProducts(updated);
+  }
+  setShowModal(false);
+  setEditingProduct(null);
+};
 
   if (loading) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Загрузка товаров...</div>;

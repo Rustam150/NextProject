@@ -32,14 +32,27 @@ export default function CategoriesPage() {
 
   const handleSave = () => {
     if (!formData.name.trim()) return;
+    const exists = categories.some(
+  c =>
+    c.name.trim().toLowerCase() === formData.name.trim().toLowerCase() &&
+    c.id !== editingCategory?.id
+);
 
+if (exists) {
+  alert('Категория с таким названием уже существует.');
+  return;
+}
     if (editingCategory) {
       const updated = categories.map(c => c.id === editingCategory.id ? { ...c, ...formData } : c);
       setCategories(updated);
       localStorage.setItem('categories', JSON.stringify(updated));
     } else {
+      const maxId = categories.reduce((max, c) => {
+    const id = Number(c.id);
+    return Number.isFinite(id) ? Math.max(max, id) : max;
+  }, 0);
       const newCategory: Category = {
-        id: Math.max(...categories.map(c => Number(c.id)), 0) + 1,
+          id: maxId + 1,
         ...formData,
       };
       const updated = [...categories, newCategory];

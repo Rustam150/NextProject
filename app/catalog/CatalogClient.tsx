@@ -68,11 +68,9 @@ export default function CatalogClient() {
   if (!loaded) return null;
 
   const filteredProducts = products.filter((p: any) => {
-    if (category) {
-      const categoryObj = categories.find((c: any) => c.id === category);
-      const categoryName = categoryObj?.name;
-      if (p.category !== category && p.category !== categoryName) return false;
-    }
+    if (category && String(p.category) !== String(category)) {
+  return false;
+}
     if (newOnly && !p.isNew) return false;
     if (saleOnly && !p.isSale) return false;
     if (filters.country && p.country !== filters.country) return false;
