@@ -1,34 +1,47 @@
 'use client';
-
+import { Store } from '@/lib/store';
 import { useState, useEffect } from 'react';
 import { Category } from '@/lib/admin-data';
 import { mockCategories } from '@/lib/admin-data';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'move' | 'delete'>('move');
+  const [targetCategoryId, setTargetCategoryId] = useState('');
   const [formData, setFormData] = useState({ name: '', image: '/images/p1.jpg' });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  useEffect(() => {
+  setCategories(Store.getCategories());
+
+  const savedProducts = localStorage.getItem('products');
+
+  if (savedProducts) {
+    setProducts(JSON.parse(savedProducts));
+  }
+}, []);
+
+  
 
   useEffect(() => {
-    const saved = localStorage.getItem('categories');
-    if (saved) {
-      setCategories(JSON.parse(saved));
-    } else {
-      setCategories(mockCategories);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (categories.length > 0) {
-      localStorage.setItem('categories', JSON.stringify(categories));
-    }
-  }, [categories]);
+  if (categories.length > 0) {
+    Store.setCategories(categories);
+  }
+}, [categories]);
 
   const filteredCategories = categories.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const productsCount = products.reduce((acc: Record<string, number>, product: any) => {
+  const categoryId = String(product.category);
+  acc[categoryId] = (acc[categoryId] || 0) + 1;
+  return acc;
+}, {});
 
   const handleSave = () => {
     if (!formData.name.trim()) return;
@@ -71,13 +84,52 @@ if (exists) {
     setShowModal(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Удалить категорию?')) {
-      const updated = categories.filter(c => c.id !== id);
-      setCategories(updated);
-      localStorage.setItem('categories', JSON.stringify(updated));
+  const confirmDeleteCategory = () => {
+  if (!categoryToDelete) return;
+
+  // ---------- Перенос товаров ----------
+  if (deleteMode === 'move') {
+    if (!targetCategoryId) {
+      alert('Выберите категорию, в которую нужно перенести товары.');
+      return;
     }
-  };
+
+    const updatedProducts = products.map(product =>
+      String(product.category) === String(categoryToDelete.id)
+        ? { ...product, category: targetCategoryId }
+        : product
+    );
+
+    Store.setProducts(updatedProducts);
+    setProducts(updatedProducts);
+  }
+
+  // ---------- Удаление товаров ----------
+  if (deleteMode === 'delete') {
+    const updatedProducts = products.filter(
+      product => String(product.category) !== String(categoryToDelete.id)
+    );
+
+    Store.setProducts(updatedProducts);
+    setProducts(updatedProducts);
+  }
+
+  // ---------- Удаляем категорию ----------
+  const updatedCategories = categories.filter(
+    c => c.id !== categoryToDelete.id
+  );
+
+  setCategories(updatedCategories);
+  Store.setCategories(updatedCategories);
+
+  // ---------- Закрываем окно ----------
+  setShowDeleteModal(false);
+  setCategoryToDelete(null);
+  setTargetCategoryId('');
+  setDeleteMode('move');
+};
+
+  
 
   return (
     <div>
@@ -125,7 +177,9 @@ if (exists) {
             <tr style={{ background: '#f9f9f9', borderBottom: '1px solid #eee' }}>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>ID</th>
               <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>Название</th>
+              <th style={{ padding: '16px', textAlign: 'center', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>Товаров</th>
               <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>Действия</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -133,6 +187,16 @@ if (exists) {
               <tr key={category.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '16px', fontSize: '14px' }}>{category.id}</td>
                 <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>{category.name}</td>
+                <td
+  style={{
+    padding: '16px',
+    textAlign: 'center',
+    fontSize: '14px',
+    fontWeight: 600,
+  }}
+>
+  {productsCount[String(category.id)] || 0}
+</td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
                   <button
                     onClick={() => handleEdit(category)}
@@ -149,7 +213,12 @@ if (exists) {
                     Редактировать
                   </button>
                   <button
-                    onClick={() => handleDelete(category.id)}
+                   onClick={() => {
+  setCategoryToDelete(category);
+  setDeleteMode('move');
+  setTargetCategoryId('');
+  setShowDeleteModal(true);
+}}
                     style={{
                       padding: '6px 12px',
                       background: '#ffebee',
@@ -168,6 +237,139 @@ if (exists) {
           </tbody>
         </table>
       </div>
+
+      {showDeleteModal && (
+  <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 3000,
+    }}
+  >
+    <div
+      style={{
+        background: '#fff',
+        padding: '24px',
+        borderRadius: '8px',
+        width: '400px',
+      }}
+    >
+      <h2 style={{ marginTop: 0, marginBottom: '16px' }}>
+  Удаление категории
+</h2>
+
+<p style={{ marginBottom: '8px' }}>
+  <strong>Категория:</strong> {categoryToDelete?.name}
+</p>
+
+<p style={{ marginBottom: '24px', color: '#666' }}>
+  В этой категории находится{' '}
+  <strong>
+    {productsCount[String(categoryToDelete?.id)] || 0}
+  </strong>{' '}
+  товар(ов).
+</p>
+
+<div style={{ marginBottom: '20px' }}>
+  <label
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      marginBottom: '12px',
+      cursor: 'pointer',
+    }}
+  >
+    <input
+      type="radio"
+      checked={deleteMode === 'move'}
+      onChange={() => setDeleteMode('move')}
+    />
+    Перенести товары в другую категорию
+  </label>
+
+  {deleteMode === 'move' && (
+    <select
+      value={targetCategoryId}
+      onChange={(e) => setTargetCategoryId(e.target.value)}
+      style={{
+        width: '100%',
+        padding: '10px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        marginBottom: '16px',
+      }}
+    >
+      <option value="">Выберите категорию</option>
+
+      {categories
+        .filter(c => c.id !== categoryToDelete?.id)
+        .map(c => (
+          <option key={c.id} value={String(c.id)}>
+            {c.name}
+          </option>
+        ))}
+    </select>
+  )}
+
+  <label
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      cursor: 'pointer',
+    }}
+  >
+    <input
+      type="radio"
+      checked={deleteMode === 'delete'}
+      onChange={() => setDeleteMode('delete')}
+    />
+    Удалить категорию вместе с товарами
+  </label>
+</div>
+      <div
+  style={{
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '12px',
+    marginTop: '24px',
+  }}
+>
+  <button
+    onClick={() => setShowDeleteModal(false)}
+    style={{
+      padding: '10px 18px',
+      border: '1px solid #ccc',
+      background: '#fff',
+      borderRadius: '6px',
+      cursor: 'pointer',
+    }}
+  >
+    Отмена
+  </button>
+
+  <button
+  onClick={confirmDeleteCategory}
+  style={{
+    padding: '10px 18px',
+    background: '#b89968',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  }}
+>
+  Продолжить
+</button>
+</div>
+    </div>
+  </div>
+)}
 
       {showModal && (
         <div style={{

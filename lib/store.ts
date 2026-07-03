@@ -118,6 +118,24 @@ export const Store = {
     }
   },
 
+  getCategories() {
+  const categories = Storage.get<any[] | null>('categories', null);
+
+  if (categories && categories.length > 0) {
+    return categories;
+  }
+
+  return HERMITAGE.categories;
+},
+
+setCategories(categories: any[]) {
+  Storage.set('categories', categories);
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('storage'));
+  }
+},
+
   updateBadges() {
     const cart = Store.cart();
     const fav = Store.favorites();
