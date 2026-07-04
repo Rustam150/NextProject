@@ -55,23 +55,30 @@ if (exists) {
   alert('Категория с таким названием уже существует.');
   return;
 }
-    if (editingCategory) {
-      const updated = categories.map(c => c.id === editingCategory.id ? { ...c, ...formData } : c);
-      setCategories(updated);
-      localStorage.setItem('categories', JSON.stringify(updated));
-    } else {
-      const maxId = categories.reduce((max, c) => {
+   if (editingCategory) {
+  const updated = categories.map(c =>
+    c.id === editingCategory.id ? { ...c, ...formData } : c
+  );
+
+  setCategories(updated);
+  Store.setCategories(updated);
+
+} else {
+  const maxId = categories.reduce((max, c) => {
     const id = Number(c.id);
     return Number.isFinite(id) ? Math.max(max, id) : max;
   }, 0);
-      const newCategory: Category = {
-          id: maxId + 1,
-        ...formData,
-      };
-      const updated = [...categories, newCategory];
-      setCategories(updated);
-      localStorage.setItem('categories', JSON.stringify(updated));
-    }
+
+  const newCategory: Category = {
+    id: maxId + 1,
+    ...formData,
+  };
+
+  const updated = [...categories, newCategory];
+
+  setCategories(updated);
+  Store.setCategories(updated);
+}
 
     setShowModal(false);
     setEditingCategory(null);

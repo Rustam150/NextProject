@@ -40,6 +40,8 @@ const MATERIAL_OPTIONS = [
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [brandFilter, setBrandFilter] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [search, setSearch] = useState('');
@@ -62,75 +64,38 @@ export default function ProductsPage() {
     loadBrands();
   }, []);
 
-  const loadBrands = () => {
-    const saved = localStorage.getItem('brands');
-    if (saved) {
-      setBrands(JSON.parse(saved));
-    } else {
-      setBrands(mockBrands);
-    }
-  };
+ const loadProducts = () => {
+  setLoading(true);
 
-  const loadProducts = async () => {
-    setLoading(true);
-    const saved = localStorage.getItem('products');
-    
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setProducts(parsed);
-    } else {
-      try {
-        const dataModule = await import('@/lib/data');
-        const hermitageData = dataModule.HERMITAGE;
-        
-        const productsFromData = hermitageData.products.map((p: any) => ({
-          id: p.id || Date.now() + Math.random(),
-          name: p.name,
-          price: p.price,
-          category: p.category || '',
-          brand: p.factory || p.brand || '',
-          country: p.country || '',
-          images: p.images || [p.image] || ['/images/p1.jpg'],
-          inStock: p.inStock ?? true,
-          popular: p.popular ?? false,
-          isNew: p.isNew ?? false,
-          description: p.description || '',
-          sku: p.sku || '',
-          sizes: p.sizes || '',
-          material: p.material || '',
-          color: p.color || '',
-          isSale: p.isSale ?? false,
-          factory: p.factory || p.brand || '',
-        }));
-        
-        setProducts(productsFromData);
-        localStorage.setItem('products', JSON.stringify(productsFromData));
-      } catch (error) {
-        console.error('Error loading products:', error);
-      }
-    }
-    setLoading(false);
-  };
+  const products = Store.getProducts();
 
-  const loadCategories = () => {
-  const saved = localStorage.getItem('categories');
+  setProducts(products);
 
-  if (saved) {
-    setCategories(JSON.parse(saved));
-  } else {
-    setCategories(CATEGORIES);
-  }
+  setLoading(false);
 };
 
-useEffect(() => {
-  if (products.length > 0) {
-    localStorage.setItem('products', JSON.stringify(products));
-  }
-}, [products]);
+const loadCategories = () => {
+  setCategories(Store.getCategories());
+};
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+const loadBrands = () => {
+  setBrands(Store.getBrands());
+};
+
+  const filteredProducts = products.filter(product => {
+  const matchesSearch =
+    product.name.toLowerCase().includes(search.toLowerCase());
+
+  const matchesCategory =
+    categoryFilter === '' ||
+    String(product.category) === String(categoryFilter);
+
+  const matchesBrand =
+    brandFilter === '' ||
+    product.brand === brandFilter;
+
+  return matchesSearch && matchesCategory && matchesBrand;
+});
 
   const handleDelete = (id: number) => {
     if (confirm('Удалить товар?')) {
@@ -337,7 +302,18 @@ Store.setProducts(updated);
   return (
     <div>
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>Товары ({products.length})</h1>
+        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', margin: 0 }}>
+  Товары ({filteredProducts.length})
+</h1>
+<p
+  style={{
+    marginTop: '6px',
+    color: '#666',
+    fontSize: '14px',
+  }}
+>
+  Показано {filteredProducts.length} из {products.length} товаров
+</p>
         <button onClick={handleAdd} className="admin-btn" style={{ padding: '12px 24px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Добавить товар</button>
       </div>
 
@@ -349,6 +325,70 @@ Store.setProducts(updated);
         className="search-input" 
         style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '24px', fontSize: '14px', boxSizing: 'border-box' }} 
       />
+
+      <select
+  value={categoryFilter}
+  onChange={(e) => setCategoryFilter(e.target.value)}
+  style={{
+    padding: '10px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    marginLeft: '12px',
+    minWidth: '200px',
+  }}
+>
+  <option value="">Все категории</option>
+
+  {categories.map(category => (
+    <option
+      key={category.id}
+      value={String(category.id)}
+    >
+      {category.name}
+    </option>
+  ))}
+</select>
+
+<select
+  value={brandFilter}
+  onChange={(e) => setBrandFilter(e.target.value)}
+  style={{
+    padding: '10px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    marginLeft: '12px',
+    minWidth: '200px',
+  }}
+>
+  <option value="">Все бренды</option>
+
+  {brands.map((brand) => (
+    <option
+      key={brand.id}
+      value={brand.name}
+    >
+      {brand.name}
+    </option>
+  ))}
+</select>
+<button
+  onClick={() => {
+    setSearch('');
+    setCategoryFilter('');
+    setBrandFilter('');
+  }}
+  style={{
+    padding: '10px 16px',
+    border: 'none',
+    borderRadius: '6px',
+    background: '#444',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '14px',
+  }}
+>
+  Сбросить фильтры
+</button>
 
       {/* КОНТЕЙНЕР С ГОРИЗОНТАЛЬНЫМ СКРОЛЛОМ */}
       <div style={{
@@ -538,6 +578,8 @@ Store.setProducts(updated);
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
+
+              
             </div>
 
             <div style={{ marginBottom: '16px' }}>

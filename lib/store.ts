@@ -136,6 +136,36 @@ setCategories(categories: any[]) {
   }
 },
 
+getBrands() {
+  const brands = Storage.get<any[] | null>('brands', null);
+
+  if (brands && brands.length > 0) {
+    return brands;
+  }
+
+  return HERMITAGE.brands;
+},
+
+setBrands(brands: any[]) {
+  Storage.set('brands', brands);
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('storage'));
+  }
+},
+
+getOrders() {
+  return Storage.get<Order[]>('hd_orders', []);
+},
+
+setOrders(orders: Order[]) {
+  Storage.set('hd_orders', orders);
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('storage'));
+  }
+},
+
   updateBadges() {
     const cart = Store.cart();
     const fav = Store.favorites();

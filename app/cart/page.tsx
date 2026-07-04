@@ -1,5 +1,5 @@
 'use client';
-
+import { showToast } from '@/lib/toast';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
@@ -82,6 +82,19 @@ export default function CartPage() {
 
   const submitOrder = (e: React.FormEvent) => {
   e.preventDefault();
+
+  const unavailableProducts = items.filter(
+  (item) => !item.inStock || item.stockQuantity === 0
+);
+
+if (unavailableProducts.length > 0) {
+  showToast(
+    `Невозможно оформить заказ.\n\nОтсутствуют на складе:\n${unavailableProducts
+      .map((p) => `• ${p.name}`)
+      .join('\n')}`
+  );
+  return;
+}
 
   const orderItems = items.map((i) => ({
     id: String(i.id),

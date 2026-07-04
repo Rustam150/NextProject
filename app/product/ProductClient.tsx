@@ -159,13 +159,20 @@ const addToCart = () => {
     const user = users.find((u: any) => u.email === email && u.password === password);
 
     if (user) {
-      Store.setUser(user);
-      setCurrentUser(user);
-      setShowLoginModal(false);
-      setShowOrderModal(true);
-    } else {
-      showToast('Неверный email или пароль', 'error');
-    }
+  Store.setUser(user);
+  setCurrentUser(user);
+  setShowLoginModal(false);
+
+  if (!product.inStock || product.stockQuantity === 0) {
+    showToast('Товар временно отсутствует на складе.', 'error');
+    return;
+  }
+
+  setShowOrderModal(true);
+
+} else {
+  showToast('Неверный email или пароль', 'error');
+}
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -187,10 +194,17 @@ const addToCart = () => {
   localStorage.setItem('hd_users', JSON.stringify(users));
   
   Store.setUser(newUser);
-  setCurrentUser(newUser);
-  setShowRegisterModal(false); // ← закрываем окно регистрации
-  setShowOrderModal(true);     // ← открываем окно оформления заявки
-  showToast('Регистрация успешна!', 'success');
+setCurrentUser(newUser);
+setShowRegisterModal(false);
+
+if (!product.inStock || product.stockQuantity === 0) {
+  showToast('Товар временно отсутствует на складе.', 'error');
+  return;
+}
+
+setShowOrderModal(true);
+
+showToast('Регистрация успешна!', 'success');
 };
 
   const similar = HERMITAGE_DATA.products
@@ -405,9 +419,20 @@ const addToCart = () => {
             <button type="button" className="btn btn--primary btn--block" onClick={addToCart}>
               Добавить в корзину
             </button>
-            <button type="button" className="btn btn--outline btn--block" onClick={() => setShowOrderModal(true)}>
-              Оформить заявку
-            </button>
+            <button
+  type="button"
+  className="btn btn--outline btn--block"
+  onClick={() => {
+    if (!product.inStock || product.stockQuantity === 0) {
+      showToast('Товар временно отсутствует на складе.', 'error');
+      return;
+    }
+
+    setShowOrderModal(true);
+  }}
+>
+  Оформить заявку
+</button>
             <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
               <button
                 type="button"
