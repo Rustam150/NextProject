@@ -26,32 +26,33 @@ export default function ProductCard({ product }: { product: Product }) {
       ? <span className="badge badge--sale">Акция</span>
       : null;
 
-  // Определяем доступность товара
-  const getAvailabilityInfo = () => {
-    // Если есть stockQuantity — проверяем его
-    if (product.stockQuantity !== undefined && product.stockQuantity !== null) {
-      if (product.stockQuantity === 0) {
-        return { text: 'Нет в наличии', className: 'out', showButton: false };
-      } else if (product.stockQuantity <= 5) {
-        return { 
-          text: `Осталось ${product.stockQuantity} шт.`, 
-          className: 'order', 
-          showButton: true 
-        };
-      } else {
-        return { text: 'В наличии', className: 'in', showButton: true };
-      }
+ const getAvailabilityInfo = () => {
+  // 1. Нет в наличии (только если явно 0)
+  if (product.stockQuantity === 0) {
+    return { text: 'Нет в наличии', className: 'out', showButton: false };
+  }
+
+  // 2. Под заказ
+  if (product.inStock === 'preorder') {
+    return { text: 'Под заказ', className: 'order', showButton: true };
+  }
+
+  // 3. Есть количество
+  if (typeof product.stockQuantity === 'number' && product.stockQuantity > 0) {
+    if (product.stockQuantity <= 5) {
+      return {
+        text: `Осталось ${product.stockQuantity} шт.`,
+        className: 'order',
+        showButton: true
+      };
     }
-    
-    // Если нет stockQuantity — проверяем inStock
-    if (product.inStock === 'preorder') {
-      return { text: 'Под заказ', className: 'order', showButton: true };
-    } else if (product.inStock === false) {
-      return { text: 'Нет в наличии', className: 'out', showButton: false };
-    } else {
-      return { text: 'В наличии', className: 'in', showButton: true };
-    }
-  };
+
+    return { text: 'В наличии', className: 'in', showButton: true };
+  }
+
+  // 4. ПРОСТО В НАЛИЧИИ (null / undefined)
+  return { text: 'В наличии', className: 'in', showButton: true };
+};
 
   const availability = getAvailabilityInfo();
 

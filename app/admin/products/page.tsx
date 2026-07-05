@@ -216,12 +216,12 @@ const loadBrands = () => {
   }
 
   if (
-    formData.inStockStatus === 'in_stock' &&
-    (formData.stockQuantity === '' || Number(formData.stockQuantity) < 0)
-  ) {
-    showToast('Количество на складе не может быть отрицательным', 'error');
-    return;
-  }
+  formData.stockQuantity !== '' &&
+  Number(formData.stockQuantity) < 0
+) {
+  showToast('Количество не может быть отрицательным', 'error');
+  return;
+} 
 
   const finalColor =
     formData.color === 'Другой' ? formData.customColor : formData.color;
@@ -285,8 +285,12 @@ Store.setProducts(updated);
       material: finalMaterial,
       color: finalColor,
       country: finalCountry,
-      inStock: inStockValue,
-      stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
+      stockQuantity:
+  inStockValue === 'preorder'
+    ? null
+    : formData.stockQuantity
+      ? Number(formData.stockQuantity)
+      : 0,
       // Убедимся что category сохранена
       category: formData.category || '',
     };
