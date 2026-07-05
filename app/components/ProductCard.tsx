@@ -58,7 +58,11 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="product-card" data-id={product.id}>
       <Link href={`/product?id=${product.id}`} className="product-card__media">
-        <img src={product.image} alt="" loading="lazy" />
+        <img
+  src={product.images?.[0] || product.image}
+  alt={product.name}
+  loading="lazy"
+/>
         {badge}
       </Link>
       <div className="product-card__body">

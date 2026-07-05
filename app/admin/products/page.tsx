@@ -250,20 +250,22 @@ const loadBrands = () => {
     const updated = products.map(p => {
       if (p.id === editingProduct.id) {
         return {
-          ...p,
-          ...formData,
-          price,
-          id: editingProduct.id,
-          factory: formData.brand,
-          images: formData.images,
-          inStock: inStockValue,
-          color: finalColor,
-          material: finalMaterial,
-          country: finalCountry,
-          stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
-          // Убедимся что category сохранена
-          category: formData.category || '',
-        };
+  ...p,
+  ...formData,
+  price,
+  id: editingProduct.id,
+  factory: formData.brand,
+
+  images: formData.images,
+  image: formData.images[0] || '/images/p1.jpg',
+
+  inStock: inStockValue,
+  color: finalColor,
+  material: finalMaterial,
+  country: finalCountry,
+  stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
+  category: formData.category || '',
+};
       }
       return p;
     });
@@ -276,6 +278,7 @@ Store.setProducts(updated);
       price,
       factory: formData.brand,
       images: formData.images,
+      image: formData.images[0] || '/images/p1.jpg',
       isSale: formData.isSale,
       sku: formData.sku || `SKU-${Date.now()}`,
       sizes: formData.sizes,
