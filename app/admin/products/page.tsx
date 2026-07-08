@@ -263,7 +263,14 @@ const loadBrands = () => {
   color: finalColor,
   material: finalMaterial,
   country: finalCountry,
-  stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : null,
+  stockQuantity:
+  inStockValue === 'preorder'
+    ? null
+    : inStockValue === false
+      ? 0
+      : formData.stockQuantity
+        ? Number(formData.stockQuantity)
+        : null,
   category: formData.category || '',
 };
       }
