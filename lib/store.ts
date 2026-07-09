@@ -1,5 +1,8 @@
 import { HERMITAGE } from './data';
 
+
+const APP_VERSION = '1.0.1';
+
 const Storage = {
   get<T>(key: string, fallback: T): T {
     try {
@@ -63,6 +66,26 @@ interface Order {
 }
 
 export const Store = {
+
+init() {
+  const version = localStorage.getItem('hd_app_version');
+
+  if (version !== APP_VERSION) {
+  Object.keys(localStorage).forEach((key) => {
+    if (
+      key.startsWith('hd_') ||
+      key === 'products' ||
+      key === 'categories'
+    ) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  localStorage.setItem('hd_app_version', APP_VERSION);
+}
+},
+
+
   cart: (): CartItem[] => Storage.get<CartItem[]>('hd_cart', []),
   setCart: (items: CartItem[]) => {
     Storage.set('hd_cart', items);
