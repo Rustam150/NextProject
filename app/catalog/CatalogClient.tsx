@@ -19,6 +19,7 @@ export default function CatalogClient() {
 
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -51,8 +52,14 @@ export default function CatalogClient() {
     }
   };
 
+  const loadBrands = () => {
+    const allBrands = Store.getBrands();
+    setBrands(allBrands);
+  };
+
   loadProducts();
   loadCategories();
+  loadBrands(); // ← загружаем бренды из Store
 
   const unsubscribe = Store.subscribeToProducts(loadProducts);
 
@@ -99,7 +106,9 @@ export default function CatalogClient() {
   });
 
   const countries = [...new Set(products.map((p: any) => p.country))];
-  const factories = [...new Set(products.map((p: any) => p.factory))];
+  const factories = brands
+  .filter(b => b.name && b.name.trim() !== '')
+  .map(b => b.name);
   const colors = [...new Set(products.map((p: any) => p.color))];
   const materials = [...new Set(products.map((p: any) => p.material.split(',')[0].trim()))];
 

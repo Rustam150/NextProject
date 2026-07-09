@@ -620,21 +620,40 @@ Store.setProducts(updated);
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Бренд</label>
-              <select value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+              <select 
+                value={formData.brand} 
+                onChange={(e) => {
+                  const selectedBrand = brands.find(b => b.name === e.target.value);
+                  setFormData({ 
+                    ...formData, 
+                    brand: e.target.value,
+                    country: selectedBrand?.country || '' 
+                  });
+                }} 
+                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}
+              >
                 <option value="">Выберите бренд</option>
                 {brands.map(brand => <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>)}
               </select>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Страна</label>
-              <select value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
-                <option value="">Выберите страну</option>
-                {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
-              </select>
-              {formData.country === 'Другая' && (
-                <input type="text" value={formData.customCountry} onChange={(e) => setFormData({ ...formData, customCountry: e.target.value })} placeholder="Введите страну" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
-              )}
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Страна (определяется брендом)</label>
+              <input 
+                type="text" 
+                value={formData.country} 
+                readOnly
+                style={{ 
+                  width: '100%', 
+                  padding: '12px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px', 
+                  fontSize: '14px', 
+                  boxSizing: 'border-box', 
+                  background: '#f5f5f5',
+                  color: '#666'
+                }} 
+              />
             </div>
 
             <div style={{ marginBottom: '16px' }}>

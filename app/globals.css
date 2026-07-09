@@ -646,7 +646,7 @@ body.search-open .site-header--hero .site-nav a {
 
   display: flex;
   flex-direction: column;
-  height: 100%; 
+   
 }
 
 .product-card:hover {
@@ -691,12 +691,29 @@ body.search-open .site-header--hero .site-nav a {
   color: white;
 }
 
+
+/* ===== Обновлённые бейджи в стиле сайта ===== */
 .badge--new {
-  background: var(--gold);
+  background: var(--gold-dark);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 10px rgba(139, 106, 0, 0.3);
 }
 
 .badge--sale {
-  background: #8b4a4a;
+  background: linear-gradient(135deg, #8b6a00, #b8860b);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  /* Мягкое золотое свечение */
+  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.5);
 }
 
 .product-card__body {
@@ -2447,4 +2464,415 @@ height: 110px;
 
 .compare-remove:hover {
   background: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+  .gallery-thumbs-wrapper {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Уменьшаем фото в таблице сравнения */
+  .compare-table img {
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover;
+  }
+  
+  /* Убираем лишние отступы */
+  .compare-table td,
+  .compare-table th {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Заголовки товаров компактнее */
+  .compare-table .compare-product-name {
+    font-size: 14px !important;
+    max-width: 120px;
+  }
+  
+  .compare-table .compare-product-price {
+    font-size: 14px !important;
+    white-space: nowrap;
+  }
+  
+  /* Горизонтальный скролл для таблицы */
+  .compare-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  
+  /* Фиксируем первую колонку с названиями характеристик */
+  .compare-table td:first-child,
+  .compare-table th:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 1;
+    min-width: 100px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  }
+}
+
+
+/* Карточка заголовка сравнения */
+.compare-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 22px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.05);
+}
+
+.compare-header-count {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.compare-header-hint {
+  margin-top: 4px;
+  color: #777;
+  font-size: 14px;
+}
+
+/* Переключатель режимов */
+.compare-modes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.compare-mode-btn {
+  padding: 8px 18px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #555;
+  font-family: inherit;
+}
+
+.compare-mode-btn:hover {
+  border-color: #999;
+}
+
+.compare-mode-btn.is-active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+/* Режим "приглушить одинаковые" */
+.compare-table--dim .compare-cell--same {
+  opacity: 0.25;
+  transition: opacity 0.25s ease;
+}
+
+.compare-table--dim .compare-cell--diff {
+  background: #f5f0e8;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+/* Режим "только различия" */
+.compare-row--hidden {
+  display: none;
+}
+
+/* Бейджи наличия */
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stock-badge--ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.stock-badge--preorder {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.stock-badge--no {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Мобильная оптимизация */
+@media (max-width: 768px) {
+  .compare-modes {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .compare-mode-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .compare-header-card {
+    padding: 14px 16px;
+  }
+
+  .compare-header-count {
+    font-size: 18px;
+  }
+}
+
+
+
+
+
+
+
+
+
+/* ===== Карточка товара ===== */
+.product-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.04);
+  display: flex;
+  flex-direction: column;
+  
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,.12);
+}
+
+.product-card__image,
+.product-card__media {
+  display: block;
+  width: 100%;
+  height: auto;               /* Возвращаем как было — естественная высота */
+  overflow: hidden;            /* ЖЕЛЕЗНО обрезаем всё, что выходит за края */
+  position: relative;
+  background: #ece8e2;
+}
+
+.product-card__image img,
+.product-card__media img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  background: #ece8e2;
+  /* transform не меняет физический размер блока, поэтому соседей не толкает */
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.product-card:hover .product-card__image img,
+.product-card:hover .product-card__media img {
+  transform: scale(1.03);
+}
+
+.product-card__media .badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  font-size: 0.65rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  color: white;
+}
+ 
+
+
+
+
+/* ===== Премиальный эффект для главного баннера ===== */
+.hero__overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 26, 0.7) 0%,
+    rgba(26, 26, 26, 0.25) 100%
+  ) !important;
+}
+
+/* Стеклянная кнопка "Новые коллекции" */
+.hero .btn--ghost {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.hero .btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ===== Карточки стран (Италия, Турция и т.д.) ===== */
+.country-card {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.country-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+/* Стеклянная плашка с названием страны */
+.country-card__label {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.country-card:hover .country-card__label {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+
+/* ===== Размер карточек стран ===== */
+.countries-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.country-card {
+  height: 260px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.country-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.country-card__label {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+  .countries-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .country-card {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .countries-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .country-card {
+    height: 200px;
+  }
+}
+
+.products-grid {
+  align-items: start;
+}
+
+
+
+/* ===== Премиальные фильтры (без изменения кода) ===== */
+.filters-panel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #999;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fafafa;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+  /* Убираем стандартный вид стрелочки у селекта */
+  -webkit-appearance: none;
+  appearance: none;
+  /* Добавляем красивую стрелочку */
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+/* Убираем стрелочки у поля с ценой */
+.filter-group input[type="number"]::-webkit-inner-spin-button,
+.filter-group input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: var(--gold-dark);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(139, 106, 0, 0.1);
 }
