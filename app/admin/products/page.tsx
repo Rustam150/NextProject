@@ -100,6 +100,19 @@ const loadBrands = () => {
   const handleDelete = (id: number) => {
     if (confirm('Удалить товар?')) {
       const updated = products.filter(p => p.id !== id);
+      // Удаляем товар из избранного
+Store.setFavorites(
+  Store.favorites().filter(favId => String(favId) !== String(id))
+);
+
+// Удаляем товар из сравнения
+Store.setCompare(
+  Store.compare().filter(compareId => String(compareId) !== String(id))
+);
+
+Store.setCart(
+  Store.cart().filter(item => String(item.id) !== String(id))
+);
       setProducts(updated);
       Store.setProducts(updated);
     }
@@ -120,6 +133,9 @@ const loadBrands = () => {
   };
 
   const handleEdit = (product: any) => {
+     console.log("Товар:", product);
+  console.log("inStock =", product.inStock);
+  console.log("stockQuantity =", product.stockQuantity);
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -244,6 +260,9 @@ const loadBrands = () => {
     inStockValue = false;
   }
 
+  // Если введено количество больше 0 — автоматически считаем товар в наличии
+
+
   // дальше идёт твой код...
 
   if (editingProduct) {
@@ -276,6 +295,7 @@ const loadBrands = () => {
       }
       return p;
     });
+    console.log(updated.find(p => p.id === editingProduct.id));
     setProducts(updated);
 Store.setProducts(updated);
   } else {
@@ -284,6 +304,7 @@ Store.setProducts(updated);
       id: `p${Date.now()}`,
       price,
       factory: formData.brand,
+      inStock: inStockValue,
       images: formData.images,
       image: formData.images[0] || '/images/p1.jpg',
       isSale: formData.isSale,
@@ -302,6 +323,7 @@ Store.setProducts(updated);
       category: formData.category || '',
     };
     const updated = [...products, newProduct];
+    
     setProducts(updated);
     Store.setProducts(updated);
   }

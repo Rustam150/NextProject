@@ -12,6 +12,7 @@ import { useStoreData } from '@/lib/use-store-data';
 export default function ComparePage() {
   const { data: HERMITAGE, loaded } = useStoreData();
   const [ids, setIds] = useState<string[]>([]);
+  const [highlightDiff, setHighlightDiff] = useState(false);
 
   useEffect(() => {
     if (!loaded) return;
@@ -22,10 +23,62 @@ export default function ComparePage() {
     .map((id) => HERMITAGE.products.find((p: any) => String(p.id) === String(id)))
     .filter(Boolean);
 
+    useEffect(() => {
+  if (!loaded) return;
+
+  const validIds = ids.filter((id) =>
+    HERMITAGE.products.some((p: any) => String(p.id) === String(id))
+  );
+
+  if (validIds.length !== ids.length) {
+    Store.setCompare(validIds);
+    setIds(validIds);
+  }
+}, [loaded, ids, HERMITAGE.products]);
+
   const removeFromCompare = (id: string) => {
-    Store.toggleCompare(id);
-    setIds(Store.compare());
-  };
+  Store.toggleCompare(id);
+  setIds(Store.compare());
+};
+
+
+
+const isUniqueValue = (key: keyof Product, value: any) => {
+  const values = products.map((p) => String(p[key] ?? '').trim());
+
+  return values.filter((v) => v === String(value).trim()).length === 1;
+};
+
+const cellStyle = (key: keyof Product, value: any) => {
+  if (!highlightDiff) return {};
+
+  const values = products.map((p) => String(p[key] ?? '').trim());
+  const current = String(value ?? '').trim();
+
+  const uniqueValues = [...new Set(values)];
+
+  // Если все значения разные — ничего не подсвечиваем
+  if (uniqueValues.length === products.length) {
+    return {};
+  }
+
+  // Если все одинаковые — тоже ничего
+  if (uniqueValues.length === 1) {
+    return {};
+  }
+
+  // Подсвечиваем только редкое значение
+  if (isUniqueValue(key, value)) {
+    return {
+      background: '#fff8e5',
+      color: '#8b6a00',
+      fontWeight: 600,
+      transition: 'all .25s ease',
+    };
+  }
+
+  return {};
+};
 
   if (!loaded) {
     return (
@@ -85,6 +138,86 @@ export default function ComparePage() {
         </div>
       </header>
 
+      <div className="container" style={{ marginBottom: 24 }}>
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 12,
+      padding: '18px 22px',
+      background: '#fff',
+      borderRadius: 18,
+      boxShadow: '0 8px 24px rgba(0,0,0,.06)',
+      border: '1px solid rgba(0,0,0,.05)'
+    }}
+  >
+    <div>
+      <div
+        style={{
+          fontSize: 22,
+          fontWeight: 600,
+          color: 'var(--gold-dark)'
+        }}
+      >
+        {products.length} из 4 товаров
+      </div>
+
+      <div
+        style={{
+          marginTop: 4,
+          color: '#777',
+          fontSize: 14
+        }}
+      >
+        Выберите товары для удобного сравнения характеристик.
+      </div>
+    </div>
+
+    <button
+      onClick={() => {
+        products.forEach((p) => Store.toggleCompare(String(p.id)));
+        setIds([]);
+      }}
+      className="btn btn--outline"
+    >
+      Очистить сравнение
+    </button>
+  </div>
+</div>
+
+
+
+<div className="container" style={{ marginBottom: 16 }}>
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'flex-end',
+    }}
+  >
+  <label
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      color: '#555',
+      userSelect: 'none',
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={highlightDiff}
+      onChange={(e) => setHighlightDiff(e.target.checked)}
+    />
+    Показать только различия
+  </label>
+</div>
+</div>
+
+
       <div className="container section" style={{ paddingTop: 0 }}>
         <p className="scroll-hint">Прокрутите таблицу влево →</p>
         <div className="compare-table-wrap">
@@ -94,77 +227,180 @@ export default function ComparePage() {
                 <th></th>
                 {products.map((p) => (
                   <th key={p.id}>
-                    <img className="compare-product-img" src={p.images?.[0] || p.image} alt={p.name} />
-                    <Link href={`/product?id=${p.id}`}>{p.name}</Link>
-                    <button
-                      type="button"
-                      onClick={() => removeFromCompare(String(p.id))}
-                      style={{
-                        display: 'block',
-                        margin: '8px auto 0',
-                        fontSize: 11,
-                        border: 'none',
-                        background: 'none',
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
-                      Убрать
-                    </button>
-                  </th>
+  <div className="compare-product-card">
+
+    <button
+      className="compare-remove"
+      onClick={() => removeFromCompare(String(p.id))}
+      title="Убрать из сравнения"
+    >
+      ✕
+    </button>
+
+    <img
+      className="compare-product-img"
+      src={p.images?.[0] || p.image}
+      alt={p.name}
+    />
+
+    <Link
+      href={`/product?id=${p.id}`}
+      className="compare-product-title"
+    >
+      {p.name}
+    </Link>
+
+    <div className="compare-product-price">
+      {formatPrice(p.price)}
+    </div>
+
+    <Link
+      href={`/product?id=${p.id}`}
+      className="btn btn--outline btn--sm"
+      style={{ marginTop: 12 }}
+    >
+      Подробнее
+    </Link>
+
+  </div>
+</th>
                 ))}
               </tr>
             </thead>
             <tbody>
+              {/*
               <tr>
                 <td>Цена</td>
                 {products.map((p) => (
                   <td key={p.id}>{formatPrice(p.price)}</td>
                 ))}
               </tr>
-              <tr>
-                <td>Страна</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.country}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Фабрика</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.factory}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Артикул</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.sku}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Размеры</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.sizes}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Материал</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.material}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Цвет</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.color}</td>
-                ))}
-              </tr>
-              <tr>
-                <td>Наличие</td>
-                {products.map((p) => (
-                  <td key={p.id}>{p.inStock ? 'В наличии' : 'Под заказ'}</td>
-                ))}
-              </tr>
+              */}
+              
+        
+<tr>
+
+  <td>Страна</td>
+
+  {products.map((p) => (
+    <td
+  key={p.id}
+  style={cellStyle('country', p.country)}
+>
+  {p.country}
+</td>
+  ))}
+</tr>
+
+              
+  <tr>
+    <td>Фабрика</td>
+    {products.map((p) => (
+      <td
+  key={p.id}
+  style={cellStyle('factory', p.factory)}
+>
+  {p.factory}
+</td>
+    ))}
+  </tr>
+
+              
+  <tr>
+    <td>Артикул</td>
+    {products.map((p) => (
+      <td
+  key={p.id}
+  style={cellStyle('sku', p.sku)}
+>
+  {p.sku}
+</td>
+    ))}
+  </tr>
+
+             
+  <tr>
+    <td>Размеры</td>
+    {products.map((p) => (
+      <td
+  key={p.id}
+  style={cellStyle('sizes', p.sizes)}
+>
+  {p.sizes}
+</td>
+    ))}
+  </tr>
+
+            
+  <tr>
+    <td>Материал</td>
+    {products.map((p) => (
+      <td
+  key={p.id}
+  style={cellStyle('material', p.material)}
+>
+  {p.material}
+</td>
+    ))}
+  </tr>
+
+             
+  <tr>
+    <td>Цвет</td>
+    {products.map((p) => (
+      <td
+  key={p.id}
+  style={cellStyle('color', p.color)}
+>
+  {p.color}
+</td>
+    ))}
+  </tr>
+
+              
+<tr>
+  <td>Наличие</td>
+
+  {products.map((p) => (
+    <td
+  key={p.id}
+  style={cellStyle('inStock', p.inStock)}
+>
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '6px 14px',
+      borderRadius: 999,
+      fontSize: 13,
+      fontWeight: 600,
+
+      background:
+        p.inStock === true
+          ? '#e8f5e9'
+          : p.inStock === 'preorder'
+          ? '#fff3e0'
+          : '#ffebee',
+
+      color:
+        p.inStock === true
+          ? '#2e7d32'
+          : p.inStock === 'preorder'
+          ? '#e65100'
+          : '#c62828'
+    }}
+  >
+        {p.inStock === true
+          ? 'В наличии'
+          : p.inStock === 'preorder'
+          ? 'Под заказ'
+          : 'Нет в наличии'}
+      </span>
+    </td>
+  ))}
+</tr>
+
             </tbody>
           </table>
         </div>
