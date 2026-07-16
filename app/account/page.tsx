@@ -8,10 +8,12 @@ import BackButton from '../components/BackButton';
 import ProductCard from '../components/ProductCard';
 import { getProduct } from '../../lib/data';
 import { Store } from '../../lib/store';
+import Toast from '../components/Toast';
 
 export default function AccountPage() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'profile' | 'favorites' | 'orders'>('login');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => {
     const u = Store.user();
@@ -30,27 +32,38 @@ export default function AccountPage() {
       Store.setUser(found);
       setUser(found);
       setActiveTab('profile');
+      setToast({ message: 'Вы успешно вошли', type: 'success' });
     } else {
-      alert('Неверный email или пароль');
+      setToast({ message: 'Неверный email или пароль', type: 'error' });
     }
   };
 
   const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const email = fd.get('email') as string;
+    
+    const users = JSON.parse(localStorage.getItem('hd_users') || '[]');
+    
+    if (users.find((u: any) => u.email === email)) {
+      setToast({ message: 'Пользователь с таким email уже существует', type: 'error' });
+      return;
+    }
+    
     const newUser = {
-      email: fd.get('email') as string,
+      email,
       password: fd.get('password') as string,
       firstName: fd.get('firstName') as string,
       lastName: fd.get('lastName') as string,
       phone: fd.get('phone') as string,
     };
-    const users = JSON.parse(localStorage.getItem('hd_users') || '[]');
+    
     users.push(newUser);
     localStorage.setItem('hd_users', JSON.stringify(users));
     Store.setUser(newUser);
     setUser(newUser);
     setActiveTab('profile');
+    setToast({ message: 'Регистрация успешна!', type: 'success' });
   };
 
   const handleProfileUpdate = (e: React.FormEvent<HTMLFormElement>) => {
@@ -70,13 +83,14 @@ export default function AccountPage() {
       users[i] = { ...users[i], ...updated };
       localStorage.setItem('hd_users', JSON.stringify(users));
     }
-    alert('Данные сохранены');
+    setToast({ message: 'Данные сохранены', type: 'success' });
   };
 
   const handleLogout = () => {
     Store.setUser(null);
     setUser(null);
     setActiveTab('login');
+    setToast({ message: 'Вы вышли из системы', type: 'info' });
   };
 
   const favProducts = Store.favorites().map(getProduct).filter(Boolean);
@@ -194,19 +208,24 @@ export default function AccountPage() {
               <form onSubmit={handleProfileUpdate} className="checkout-form" style={{ maxWidth: 480 }}>
                 <div className="form-group">
                   <label>Имя</label>
-                  <input type="text" name="firstName" defaultValue={user.firstName} required />
+                  <input type="text" name="firstName" defaultValue={user?.firstName || ''} required />
                 </div>
                 <div className="form-group">
                   <label>Фамилия</label>
-                  <input type="text" name="lastName" defaultValue={user.lastName} required />
+                  <input type="text" name="lastName" defaultValue={user?.lastName || ''} required />
                 </div>
                 <div className="form-group">
                   <label>Телефон</label>
-                  <input type="tel" name="phone" defaultValue={user.phone || ''} required />
+                  <input type="tel" name="phone" defaultValue={user?.phone || ''} required />
                 </div>
                 <div className="form-group">
                   <label>Email</label>
-                  <input type="email" value={user.email} disabled style={{ opacity: 0.6 }} />
+                  <input 
+                    type="email" 
+                    value={user?.email || ''} 
+                    readOnly 
+                    style={{ opacity: 0.6 }} 
+                  />
                 </div>
                 <button type="submit" className="btn btn--primary btn--block">
                   Сохранить
@@ -265,6 +284,14 @@ export default function AccountPage() {
       </div>
 
       <Footer />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </>
   );
 }

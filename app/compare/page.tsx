@@ -9,7 +9,7 @@ import { formatPrice, type Product } from '../../lib/data';
 import { Store } from '../../lib/store';
 import { useStoreData } from '@/lib/use-store-data';
 
-type DiffMode = 'all' | 'dim' | 'hide';
+type DiffMode = 'all' | 'hide';
 
 export default function ComparePage() {
   const { data: HERMITAGE, loaded } = useStoreData();
@@ -27,11 +27,9 @@ export default function ComparePage() {
 
   useEffect(() => {
     if (!loaded) return;
-
     const validIds = ids.filter((id) =>
       HERMITAGE.products.some((p: any) => String(p.id) === String(id))
     );
-
     if (validIds.length !== ids.length) {
       Store.setCompare(validIds);
       setIds(validIds);
@@ -44,29 +42,14 @@ export default function ComparePage() {
   };
 
   // Проверяем, есть ли различия в строке
-  const hasDiff = (key: keyof Product) => {
+  const hasDiff = (key: string) => {
     const values = products.map((p) => String(p[key] ?? '').trim());
     const unique = [...new Set(values)];
     return unique.length > 1;
   };
 
-  // Стиль ячейки в режиме "приглушить"
-  const getCellClass = (key: keyof Product) => {
-    if (diffMode === 'all') return '';
-    if (diffMode === 'hide') return '';
-    if (diffMode === 'dim') {
-      return hasDiff(key) ? 'compare-cell--diff' : 'compare-cell--same';
-    }
-    return '';
-  };
-
-  // Скрывать ли строку
-  const shouldHideRow = (key: keyof Product) => {
-    return diffMode === 'hide' && !hasDiff(key);
-  };
-
   // Характеристики для таблицы
-  const specs: { key: keyof Product; label: string; render?: (p: any) => React.ReactNode }[] = [
+  const specs: { key: string; label: string; render?: (p: any) => React.ReactNode }[] = [
     { key: 'country', label: 'Страна' },
     { key: 'factory', label: 'Фабрика' },
     { key: 'sku', label: 'Артикул' },
@@ -78,11 +61,7 @@ export default function ComparePage() {
       label: 'Наличие',
       render: (p: any) => (
         <span className={`stock-badge stock-badge--${p.inStock === true ? 'ok' : p.inStock === 'preorder' ? 'preorder' : 'no'}`}>
-          {p.inStock === true
-            ? 'В наличии'
-            : p.inStock === 'preorder'
-            ? 'Под заказ'
-            : 'Нет в наличии'}
+          {p.inStock === true ? 'В наличии' : p.inStock === 'preorder' ? 'Под заказ' : 'Нет в наличии'}
         </span>
       ),
     },
@@ -92,9 +71,7 @@ export default function ComparePage() {
     return (
       <>
         <Header />
-        <div className="container section" style={{ paddingTop: 100, textAlign: 'center' }}>
-          Загрузка...
-        </div>
+        <div className="container section" style={{ paddingTop: 100, textAlign: 'center' }}>Загрузка...</div>
         <Footer />
       </>
     );
@@ -104,20 +81,12 @@ export default function ComparePage() {
     return (
       <>
         <Header />
-        <div className="container" style={{ paddingTop: 16 }}>
-          <BackButton fallback="/catalog" />
-        </div>
-        <header className="page-header">
-          <div className="container">
-            <h1>Сравнение товаров</h1>
-          </div>
-        </header>
+        <div className="container" style={{ paddingTop: 16 }}><BackButton fallback="/catalog" /></div>
+        <header className="page-header"><div className="container"><h1>Сравнение товаров</h1></div></header>
         <div className="container section" style={{ paddingTop: 0 }}>
           <div className="empty-state">
             <h2>Нет товаров для сравнения</h2>
-            <Link href="/catalog" className="btn btn--outline" style={{ marginTop: 16 }}>
-              В каталог
-            </Link>
+            <Link href="/catalog" className="btn btn--outline" style={{ marginTop: 16 }}>В каталог</Link>
           </div>
         </div>
         <Footer />
@@ -128,34 +97,26 @@ export default function ComparePage() {
   return (
     <>
       <Header />
-      <div className="container" style={{ paddingTop: 16 }}>
-        <BackButton fallback="/catalog" />
-      </div>
+      <div className="container" style={{ paddingTop: 16 }}><BackButton fallback="/catalog" /></div>
 
       <header className="page-header">
         <div className="container">
           <h1>Сравнение товаров</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 8 }}>
-            До 4 товаров. Добавляйте из карточки товара.
-          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 8 }}>До 4 товаров. Добавляйте из карточки товара.</p>
         </div>
       </header>
 
       <div className="container" style={{ marginBottom: 24 }}>
         <div className="compare-header-card">
           <div>
-            <div className="compare-header-count">
-              {products.length} из 4 товаров
-            </div>
-            <div className="compare-header-hint">
-              Выберите товары для удобного сравнения характеристик.
-            </div>
+            <div className="compare-header-count">{products.length} из 4 товаров</div>
+            <div className="compare-header-hint">Выберите товары для удобного сравнения характеристик.</div>
           </div>
-          <button
-            onClick={() => {
-              products.forEach((p) => Store.toggleCompare(String(p.id)));
-              setIds([]);
-            }}
+          <button 
+            onClick={() => { 
+              products.forEach((p) => Store.toggleCompare(String(p.id))); 
+              setIds([]); 
+            }} 
             className="btn btn--outline"
           >
             Очистить
@@ -163,23 +124,16 @@ export default function ComparePage() {
         </div>
       </div>
 
-      {/* Переключатель режимов */}
       <div className="container" style={{ marginBottom: 20 }}>
         <div className="compare-modes">
-          <button
-            className={`compare-mode-btn ${diffMode === 'all' ? 'is-active' : ''}`}
+          <button 
+            className={`compare-mode-btn ${diffMode === 'all' ? 'is-active' : ''}`} 
             onClick={() => setDiffMode('all')}
           >
             Все параметры
           </button>
-          <button
-            className={`compare-mode-btn ${diffMode === 'dim' ? 'is-active' : ''}`}
-            onClick={() => setDiffMode('dim')}
-          >
-            Выделить различия
-          </button>
-          <button
-            className={`compare-mode-btn ${diffMode === 'hide' ? 'is-active' : ''}`}
+          <button 
+            className={`compare-mode-btn ${diffMode === 'hide' ? 'is-active' : ''}`} 
             onClick={() => setDiffMode('hide')}
           >
             Только различия
@@ -190,24 +144,24 @@ export default function ComparePage() {
       <div className="container section" style={{ paddingTop: 0 }}>
         <p className="scroll-hint">Прокрутите таблицу влево →</p>
         <div className="compare-table-wrap">
-          <table className={`compare-table ${diffMode !== 'all' ? `compare-table--${diffMode}` : ''}`}>
+          <table className="compare-table">
             <thead>
               <tr>
                 <th></th>
                 {products.map((p) => (
                   <th key={p.id}>
                     <div className="compare-product-card">
-                      <button
-                        className="compare-remove"
-                        onClick={() => removeFromCompare(String(p.id))}
+                      <button 
+                        className="compare-remove" 
+                        onClick={() => removeFromCompare(String(p.id))} 
                         title="Убрать из сравнения"
                       >
                         ✕
                       </button>
-                      <img
-                        className="compare-product-img"
-                        src={p.images?.[0] || p.image}
-                        alt={p.name}
+                      <img 
+                        className="compare-product-img" 
+                        src={p.images?.[0] || p.image} 
+                        alt={p.name} 
                       />
                       <Link href={`/product?id=${p.id}`} className="compare-product-title">
                         {p.name}
@@ -215,9 +169,9 @@ export default function ComparePage() {
                       <div className="compare-product-price">
                         {formatPrice(p.price)}
                       </div>
-                      <Link
-                        href={`/product?id=${p.id}`}
-                        className="btn btn--outline btn--sm"
+                      <Link 
+                        href={`/product?id=${p.id}`} 
+                        className="btn btn--outline btn--sm" 
                         style={{ marginTop: 12 }}
                       >
                         Подробнее
@@ -229,13 +183,13 @@ export default function ComparePage() {
             </thead>
             <tbody>
               {specs.map(({ key, label, render }) => (
-                <tr
-                  key={key}
-                  className={shouldHideRow(key) ? 'compare-row--hidden' : ''}
+                <tr 
+                  key={key} 
+                  className={diffMode === 'hide' && !hasDiff(key) ? 'compare-row--hidden' : ''}
                 >
                   <td>{label}</td>
                   {products.map((p) => (
-                    <td key={p.id} className={getCellClass(key)}>
+                    <td key={p.id}>
                       {render ? render(p) : p[key] || '—'}
                     </td>
                   ))}
@@ -245,7 +199,6 @@ export default function ComparePage() {
           </table>
         </div>
       </div>
-
       <Footer />
     </>
   );

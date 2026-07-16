@@ -466,7 +466,7 @@ Store.setProducts(updated);
                     {product.name}
                   </td>
                   <td style={{ padding: '16px', fontSize: '14px', color: '#666' }}>
-                    {categories.find(c => c.id === product.category)?.name || product.category}
+                    {categories.find(c => String(c.id) === String(product.category))?.name || product.category}
                   </td>
                   <td style={{ padding: '16px', fontSize: '14px', fontWeight: 500 }}>
                     {String(product.price)} ₽
@@ -555,71 +555,49 @@ Store.setProducts(updated);
         </div>
       </div>
 
-      {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px', overflowY: 'auto' }}>
-          <div style={{ background: '#fff', padding: '32px', borderRadius: '8px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '24px', margin: '0 0 24px 0' }}>{editingProduct ? 'Редактировать товар' : 'Добавить товар'}</h2>
+            {showModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-box">
+            <h2 className="admin-modal-title">{editingProduct ? 'Редактировать товар' : 'Добавить товар'}</h2>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Название *</label>
-              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            <div className="admin-field">
+              <label>Название *</label>
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Цена *</label>
-              <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/\D/g, '') })} placeholder="0" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            <div className="admin-field">
+              <label>Цена *</label>
+              <input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/\D/g, '') })} placeholder="0" />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Фото товара</label>
-              <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Можно выбрать несколько фото (до 10)</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+            <div className="admin-field">
+              <label>Фото товара</label>
+              <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="admin-file-input" />
+              <p className="admin-hint">Можно выбрать несколько фото (до 10)</p>
+              <div className="admin-images-grid">
                 {formData.images.map((img, index) => (
-                  <div key={index} style={{ position: 'relative' }}>
-                    <img src={img} alt={`Preview ${index}`} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                  <div key={index} className="admin-img-wrap">
+                    <img src={img} alt={`Preview ${index}`} />
                     {formData.images.length > 1 && (
-                      <button
-                        onClick={() => removeImage(index)}
-                        style={{
-                          position: 'absolute',
-                          top: '4px',
-                          right: '4px',
-                          background: 'rgba(0,0,0,0.7)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '24px',
-                          height: '24px',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        ×
-                      </button>
+                      <button type="button" onClick={() => removeImage(index)} className="admin-img-remove">×</button>
                     )}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Категория</label>
-              <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+            <div className="admin-field">
+              <label>Категория</label>
+              <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>
                 <option value="">Выберите категорию</option>
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-
-              
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Бренд</label>
+            <div className="admin-field">
+              <label>Бренд</label>
               <select 
                 value={formData.brand} 
                 onChange={(e) => {
@@ -630,71 +608,56 @@ Store.setProducts(updated);
                     country: selectedBrand?.country || '' 
                   });
                 }} 
-                style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}
               >
                 <option value="">Выберите бренд</option>
                 {brands.map(brand => <option key={brand.id} value={brand.name}>{brand.name} ({brand.country})</option>)}
               </select>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Страна (определяется брендом)</label>
-              <input 
-                type="text" 
-                value={formData.country} 
-                readOnly
-                style={{ 
-                  width: '100%', 
-                  padding: '12px', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '4px', 
-                  fontSize: '14px', 
-                  boxSizing: 'border-box', 
-                  background: '#f5f5f5',
-                  color: '#666'
-                }} 
-              />
+            <div className="admin-field">
+              <label>Страна (определяется брендом)</label>
+              <input type="text" value={formData.country} readOnly className="admin-readonly" />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Артикул</label>
-              <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            <div className="admin-field">
+              <label>Артикул</label>
+              <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Размеры</label>
-              <input type="text" value={formData.sizes} onChange={(e) => setFormData({ ...formData, sizes: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            <div className="admin-field">
+              <label>Размеры</label>
+              <input type="text" value={formData.sizes} onChange={(e) => setFormData({ ...formData, sizes: e.target.value })} />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Материал</label>
-              <select value={formData.material} onChange={(e) => setFormData({ ...formData, material: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+            <div className="admin-field">
+              <label>Материал</label>
+              <select value={formData.material} onChange={(e) => setFormData({ ...formData, material: e.target.value })}>
                 <option value="">Выберите материал</option>
                 {MATERIAL_OPTIONS.map(material => (
                   <option key={material} value={material}>{material}</option>
                 ))}
               </select>
               {formData.material === 'Другой' && (
-                <input type="text" value={formData.customMaterial} onChange={(e) => setFormData({ ...formData, customMaterial: e.target.value })} placeholder="Введите материал" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
+                <input type="text" value={formData.customMaterial} onChange={(e) => setFormData({ ...formData, customMaterial: e.target.value })} placeholder="Введите материал" style={{ marginTop: '8px' }} />
               )}
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Цвет</label>
-              <select value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+            <div className="admin-field">
+              <label>Цвет</label>
+              <select value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })}>
                 <option value="">Выберите цвет</option>
                 {COLOR_OPTIONS.map(color => (
                   <option key={color} value={color}>{color}</option>
                 ))}
               </select>
               {formData.color === 'Другой' && (
-                <input type="text" value={formData.customColor} onChange={(e) => setFormData({ ...formData, customColor: e.target.value })} placeholder="Введите цвет" style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', marginTop: '8px' }} />
+                <input type="text" value={formData.customColor} onChange={(e) => setFormData({ ...formData, customColor: e.target.value })} placeholder="Введите цвет" style={{ marginTop: '8px' }} />
               )}
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Наличие</label>
-              <select value={formData.inStockStatus} onChange={(e) => setFormData({ ...formData, inStockStatus: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box', background: '#fff' }}>
+            <div className="admin-field">
+              <label>Наличие</label>
+              <select value={formData.inStockStatus} onChange={(e) => setFormData({ ...formData, inStockStatus: e.target.value })}>
                 {AVAILABILITY_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
@@ -702,48 +665,38 @@ Store.setProducts(updated);
             </div>
 
             {formData.inStockStatus === 'in_stock' && (
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Количество на складе</label>
+              <div className="admin-field">
+                <label>Количество на складе</label>
                 <input
                   type="number"
                   value={formData.stockQuantity}
                   onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
                   placeholder="Оставьте пустым если не ограничено"
-                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }}
                 />
-                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Например: 1, 5, 10. Оставьте пустым если товара много.</p>
+                <p className="admin-hint">Например: 1, 5, 10. Оставьте пустым если товара много.</p>
               </div>
             )}
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#333' }}>Описание</label>
-              <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '14px', boxSizing: 'border-box' }} />
+            <div className="admin-field">
+              <label>Описание</label>
+              <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} />
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input type="checkbox" checked={formData.popular} onChange={(e) => setFormData({ ...formData, popular: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                Популярный товар
-              </label>
+            <div className="admin-field admin-field-row">
+              <label><input type="checkbox" checked={formData.popular} onChange={(e) => setFormData({ ...formData, popular: e.target.checked })} /> Популярный товар</label>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                Новинка
-              </label>
+            <div className="admin-field admin-field-row">
+              <label><input type="checkbox" checked={formData.isNew} onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })} /> Новинка</label>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#333', cursor: 'pointer' }}>
-                <input type="checkbox" checked={formData.isSale} onChange={(e) => setFormData({ ...formData, isSale: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                Акция
-              </label>
+            <div className="admin-field admin-field-row">
+              <label><input type="checkbox" checked={formData.isSale} onChange={(e) => setFormData({ ...formData, isSale: e.target.checked })} /> Акция</label>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={handleSave} style={{ flex: 1, padding: '12px', background: '#b89968', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Сохранить</button>
-              <button onClick={() => { setShowModal(false); setEditingProduct(null); }} style={{ flex: 1, padding: '12px', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Отмена</button>
+            <div className="admin-modal-actions">
+              <button onClick={handleSave} className="admin-btn-save">Сохранить</button>
+              <button onClick={() => { setShowModal(false); setEditingProduct(null); }} className="admin-btn-cancel">Отмена</button>
             </div>
           </div>
         </div>
